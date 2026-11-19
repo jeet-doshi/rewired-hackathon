@@ -48,7 +48,7 @@ Deploy: Render Blueprint (`render.yaml`) creates the web service + free Postgres
 - WhatsApp **simulator** that runs the exact same bot logic (demo fallback)
 
 **Partial / honest limits:**
-- WhatsApp access is via **test/trial accounts**: Twilio's free trial delivers incoming messages to our app but only lets the bot reply with Twilio's fixed templates; Meta's free test number allows replies but only to up to 5 registered test phones. A production launch needs an approved WhatsApp Business number.
+- WhatsApp access is via **free test/trial accounts**, combined: messages are **received** on Twilio's trial number (+1 737 250 8034) and the bot **replies** from Meta's free test number (+1 555 169 1720), because Twilio's trial only allows template replies and Meta's unpublished test app can send but not yet receive. Meta test numbers reach up to 5 registered phones. A production launch uses one verified WhatsApp Business number for both.
 - Reminder gaps are **minutes** in demo mode (hours in real life) so judges can see them.
 - Demo team members use fake numbers (+91000...) and live in the simulator.
 - Access control (who sees what) is minimal: the dashboard link is secret; per-role permissions are next.

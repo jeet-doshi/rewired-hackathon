@@ -10,7 +10,8 @@
 - **Google Gemini API** (inside the app): reads the text, splits it into tasks (who, what, by when, photo needed), translates each task into the assignee's language, and answers questions from the app's own data. (Backup: can listen to audio directly if Sarvam is unavailable.)
 
 ## APIs and services
-- **Twilio WhatsApp Sandbox**: sends and receives WhatsApp messages (no Meta approval needed for the sandbox).
+- **Meta WhatsApp Cloud API** (free test number): sends WhatsApp replies, voice notes and photos.
+- **Twilio WhatsApp (trial)**: receives incoming WhatsApp messages (its trial only allows template replies, so replies go via Meta).
 - **Render** (free tier): hosts the web app and its Postgres database.
 
 ## Open-source libraries
