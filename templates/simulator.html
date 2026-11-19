@@ -8,6 +8,13 @@
   .in { background:#dcf8c6; margin-left:auto; } .out { background:#fff; }
   .msg small { display:block; color:#777; font-size:11px; margin-top:4px; }
 </style>
+{% if solo %}
+<style> .chat { height:62vh; } </style>
+<div style="display:flex;align-items:center;gap:10px;background:#075e54;color:#fff;padding:10px 14px;border-radius:12px 12px 0 0">
+  <img src="/static/wewed-logo.jpg" style="height:40px;border-radius:50%">
+  <div><b>WeWED Bot</b><br><small>{{ (me.name if me else name) or phone }}'s WhatsApp · live</small></div>
+</div>
+{% else %}
 <p class="muted">📱 <b>WhatsApp simulator</b> — the same bot logic as real WhatsApp, shown on screen. Use it to test, or to
   act as team members with demo numbers. Messages to real phone numbers are also sent on WhatsApp.</p>
 
@@ -19,6 +26,7 @@
     </select>
   </label>
 </form>
+{% endif %}
 
 {% if error %}<p class="banner">Error: {{ error }}</p>{% endif %}
 
@@ -30,6 +38,8 @@
 
 <form method="post" enctype="multipart/form-data" id="sendForm" style="margin-top:12px">
   <input type="hidden" name="phone" value="{{ phone }}">
+  <input type="hidden" name="solo" value="{{ solo or '' }}">
+  <input type="hidden" name="name" value="{{ name or '' }}">
   <div class="grid">
     <input name="body" placeholder="Type a message… (e.g. DONE 12)" autofocus>
     <input type="file" name="file" id="file" accept="audio/*,image/*">
@@ -43,6 +53,12 @@
 
 <script>
   document.getElementById('chat').scrollTop = 1e9;
+  // LIVE: reload every 4 s so new messages pop in (not while typing, recording or with a file attached)
+  setInterval(() => {
+    const typing = document.activeElement && document.activeElement.name === 'body' && document.activeElement.value;
+    const busy = (recorder && recorder.state === 'recording') || document.getElementById('file').files.length;
+    if (!typing && !busy) location.reload();
+  }, 4000);
   document.getElementById('sendForm').addEventListener('submit', () => {
     document.getElementById('sendBtn').setAttribute('aria-busy', 'true');
     document.getElementById('sendBtn').textContent = 'Thinking…';

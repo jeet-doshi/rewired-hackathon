@@ -2,7 +2,9 @@
 {% block title %}{{ planner.business }} · WeWED{% endblock %}
 {% block nav %}
 <li><a href="/w/{{ planner.token }}/sim">📱 WhatsApp simulator</a></li>
-{% if planner.is_demo %}<li><form method="post" action="/w/{{ planner.token }}/reset" style="margin:0"
+{% if planner.is_demo %}<li><form method="post" action="/w/{{ planner.token }}/clear" style="margin:0"
+  onsubmit="return confirm('Clear ALL tasks, messages and team members? (planner stays)')"><button class="secondary outline" style="padding:4px 12px">🧹 Clear workspace</button></form></li>
+<li><form method="post" action="/w/{{ planner.token }}/reset" style="margin:0"
   onsubmit="return confirm('Reset the demo workspace to its starting data?')"><button class="secondary outline" style="padding:4px 12px">↺ Reset demo</button></form></li>{% endif %}
 {% endblock %}
 {% block body %}
@@ -33,6 +35,13 @@
     <p class="muted">Your private dashboard link (keep it safe): <a href="{{ link }}">{{ link }}</a></p>
   </article>
 </details>
+
+<article style="padding:12px 16px">
+  <b>📱 Live phones</b> <span class="muted">(open each on its own phone/laptop — messages pop in live)</span><br>
+  <a role="button" class="outline" style="padding:4px 12px;margin:6px 6px 0 0" target="_blank" href="/w/{{ planner.token }}/sim?phone={{ planner.phone|urlencode }}&solo=1&name={{ planner.name|urlencode }}">👑 Planner ({{ planner.name }})</a>
+  <a role="button" class="outline" style="padding:4px 12px;margin:6px 6px 0 0" target="_blank" href="/w/{{ planner.token }}/sim?phone=%2B910000000011&solo=1&name=Divya">👩 Divya's phone</a>
+  <a role="button" class="outline" style="padding:4px 12px;margin:6px 6px 0 0" target="_blank" href="/w/{{ planner.token }}/sim?phone=%2B910000000012&solo=1&name=Anushree">👩 Anushree's phone</a>
+</article>
 
 <div class="stats">
   <div class="stat"><b>{{ stats.open }}</b>open tasks</div>

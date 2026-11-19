@@ -354,6 +354,21 @@ def seed_demo():
     return p
 
 
+def clear_demo():
+    """Empty the demo workspace: no tasks, no messages, only the planner left (people re-join with the code)."""
+    p = one("SELECT * FROM planners WHERE is_demo = 1")
+    if not p:
+        return
+    for m in members_of(p["id"]):
+        clear_state(m["phone"])
+    for phone in ("+910000000011", "+910000000012"):
+        clear_state(phone)
+        query("DELETE FROM messages WHERE phone = ?", (phone,))
+    query("DELETE FROM tasks WHERE planner_id = ?", (p["id"],))
+    query("DELETE FROM messages WHERE planner_id = ?", (p["id"],))
+    query("DELETE FROM members WHERE planner_id = ? AND role != 'planner'", (p["id"],))
+
+
 def reset_demo():
     """One-click reset: wipe the demo workspace's tasks and messages and rebuild the fake data.
     Real phones that joined the demo workspace stay joined (so you don't have to re-join before a demo)."""

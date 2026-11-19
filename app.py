@@ -174,6 +174,15 @@ def reset(token):
     return redirect(url_for("dashboard", token="demo"))
 
 
+@app.post("/w/<token>/clear")
+def clear(token):
+    planner = planner_or_404(token)
+    if not planner["is_demo"]:
+        abort(403)
+    db.clear_demo()
+    return redirect(url_for("dashboard", token=token))
+
+
 @app.get("/proof/<int:task_id>/<token>")
 def proof(task_id, token):
     planner = planner_or_404(token)
@@ -221,10 +230,12 @@ def simulator(token):
             error = str(e)
             print("Simulator error:", e)
         if not error:
-            return redirect(url_for("simulator", token=token, phone=phone))
+            return redirect(url_for("simulator", token=token, phone=phone, solo=request.values.get("solo"),
+                                    name=request.values.get("name")))
     me = next((m for m in members if m["phone"] == phone), None)
     return render_template("simulator.html", planner=planner, members=members, phone=phone, me=me,
-                           messages=db.messages_for_phone(phone), error=error)
+                           messages=db.messages_for_phone(phone), error=error,
+                           solo=request.values.get("solo"), name=request.values.get("name"))
 
 
 # ---------- real WhatsApp (Twilio webhook) ----------
