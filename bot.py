@@ -287,9 +287,10 @@ def assign_to_wedding(planner, phone, choice, data):
 
 def notify_assignee(planner, task):
     """Text message with the task (English + their language), then a voice note in their chosen language."""
-    local = (task.get("task_local") or "").strip()
-    lang = task.get("assignee_language") or "en-IN"
-    local_line = f"\n🗣 _{local}_" if local and local.lower() != task["task"].strip().lower() else ""
+    # Demo decision: everything goes out in English only (one language, no duplicate line)
+    lang = "en-IN"
+    local = ""
+    local_line = ""
     proof = "\n📷 *Photo proof needed* — send the photo with your DONE reply." if task["needs_proof"] else ""
     send(planner["id"], task["assignee_phone"],
          f"🔔 *New task from {planner['name']}* ({planner['business']})\n"
@@ -300,7 +301,7 @@ def notify_assignee(planner, task):
     # They talk, not type: give them the task as a voice note too (only if we have it in their language)
     spoken_text = local if local else (task["task"] if lang == "en-IN" else "")
     if spoken_text:
-        spoken = voice.speak(f"{planner['name']}: {spoken_text}", lang)
+        spoken = voice.speak(f"New task. {spoken_text}. Due {fmt_due(task['due_at'])}.", lang)
         if spoken:
             messaging.send_voice(planner["id"], task["assignee_phone"], spoken)
 
@@ -345,7 +346,7 @@ def member_flow(member, planner, body, audio, image, state, voice_info=None):
         # Not a "done" message: pass it to the planner so nothing is lost
         transcript = voice_info["transcript"] if voice_info else (result.get("transcript") or body)
         english = result.get("english") or transcript
-        original = f"\n🗣 _{transcript}_" if transcript.strip().lower() != english.strip().lower() else ""
+        original = ""  # English only
         send(planner["id"], planner["phone"],
              f"💬 *{member['name']}* ({member['specialty'] or member['role']}) says:\n{english}{original}")
         return send(planner["id"], phone, f"👍 Got it — passed this to {planner['name']}.")

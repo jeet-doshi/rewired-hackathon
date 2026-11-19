@@ -311,7 +311,7 @@ def seed_demo():
 
     planner_phone = normalise_phone(os.environ.get("DEMO_PLANNER_PHONE", "")) or SIMULATED_PREFIX + "0000001"
     p = create_planner(
-        "Riya Kapoor", "Shubh Events", planner_phone, is_demo=True, join_code="SHUBH-DEC", token="demo",
+        "Jeet Doshi", "Shubh Events", planner_phone, is_demo=True, join_code="SHUBH-DEC", token="demo",
         weddings=[
             {"name": "Sharma - Iyer", "date": day(5), "venue": "Bangalore Palace"},
             {"name": "Mehta - Rao", "date": day(12), "venue": "Taj West End"},
@@ -320,31 +320,23 @@ def seed_demo():
         ])
     pid = p["id"]
     sim = SIMULATED_PREFIX
-    people = [
-        ("Ayush", sim + "0000002", "team", "Logistics & venue", "hi-IN"),
-        ("Rahul", sim + "0000003", "team", "Vendor coordination", "en-IN"),
-        ("Neha", sim + "0000004", "team", "Guest hospitality", "kn-IN"),
-        ("Imran (Gulmohar Decor)", sim + "0000005", "vendor", "Decorator", "hi-IN"),
-        ("Suresh (Annapurna Caterers)", sim + "0000006", "vendor", "Caterer", "kn-IN"),
-        ("Kavya (Click Studio)", sim + "0000007", "vendor", "Photographer", "ta-IN"),
-        ("DJ Sonu", sim + "0000008", "vendor", "DJ & sound", "hi-IN"),
+    people = [  # Divya and Anushree use the live phone pages in the demo
+        ("Divya", sim + "0000011", "team", "Decor & venue", "en-IN"),
+        ("Anushree", sim + "0000012", "team", "Guests & hospitality", "en-IN"),
+        ("Imran (Gulmohar Decor)", sim + "0000005", "vendor", "Decorator", "en-IN"),
+        ("Suresh (Annapurna Caterers)", sim + "0000006", "vendor", "Caterer", "en-IN"),
     ]
     ids = {}
     for name, phone, role, spec, lang in people:
         ids[name.split()[0]] = add_member(pid, name, phone, role, spec, lang)["id"]
     w = {x["name"].split()[0]: x["id"] for x in weddings_of(pid)}
 
-    seed_tasks = [
+    seed_tasks = [  # a little dummy history so the dashboard isn't empty
         # (wedding, person, task, due, needs_proof, status)
         ("Sharma", "Imran", "Send photo of the mehendi stage mock-up", at(1, 18), 1, "pending"),
-        ("Sharma", "Ayush", "Confirm 3 buses for baraat pickup from hotel", at(0, 20), 0, "pending"),
         ("Sharma", "Suresh", "Share final menu with Jain food counter", at(-1, 18), 0, "pending"),
-        ("Sharma", "Neha", "Send room list to Bangalore Palace front desk", at(-2, 12), 0, "done"),
-        ("Sharma", "Kavya", "Confirm second shooter for haldi", at(-1, 12), 0, "done"),
-        ("Mehta", "Rahul", "Get revised quote from florist", at(2, 18), 0, "pending"),
-        ("Mehta", "DJ", "Share sangeet playlist draft", at(4, 18), 0, "pending"),
-        ("Khan", "Neha", "Print and courier welcome cards to guests", at(6, 18), 1, "pending"),
-        ("Reddy", "Ayush", "Book site visit at Windflower with family", at(3, 11), 0, "pending"),
+        ("Sharma", "Divya", "Confirm 3 buses for baraat pickup", at(-1, 12), 0, "done"),
+        ("Mehta", "Anushree", "Send room list to Taj West End front desk", at(2, 18), 0, "pending"),
     ]
     for wed, person, text, due, proof, status in seed_tasks:
         t = create_task(pid, w[wed], ids[person], text, text, due, proof, "seed")
@@ -375,6 +367,7 @@ def reset_demo():
     p = one("SELECT * FROM planners WHERE is_demo = 1")
     if not p:
         return seed_demo()
+    clear_demo()  # also wipes the demo phones' chat history
     pid = p["id"]
     real_members = [m for m in members_of(pid)
                     if m["role"] != "planner" and not (m["phone"] or "").startswith(SIMULATED_PREFIX)]

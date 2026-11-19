@@ -55,10 +55,14 @@
   document.getElementById('chat').scrollTop = 1e9;
   // LIVE: reload every 4 s so new messages pop in (not while typing, recording or with a file attached)
   setInterval(() => {
-    const typing = document.activeElement && document.activeElement.name === 'body' && document.activeElement.value;
-    const busy = (recorder && recorder.state === 'recording') || document.getElementById('file').files.length;
-    if (!typing && !busy) location.reload();
-  }, 4000);
+    try {
+      const box = document.querySelector('input[name=body]');
+      const typing = box && box.value.trim().length > 0;
+      const rec = (typeof recorder !== 'undefined') && recorder && recorder.state === 'recording';
+      const file = document.getElementById('file').files.length > 0;
+      if (!typing && !rec && !file) location.reload();
+    } catch (e) { location.reload(); }
+  }, 3000);
   document.getElementById('sendForm').addEventListener('submit', () => {
     document.getElementById('sendBtn').setAttribute('aria-busy', 'true');
     document.getElementById('sendBtn').textContent = 'Thinking…';
