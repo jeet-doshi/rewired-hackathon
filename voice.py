@@ -57,10 +57,11 @@ def speak(text, language_code):
     body = {
         "text": text[:1500],
         "target_language_code": language_code,
-        "speaker": os.environ.get("SARVAM_SPEAKER", "anushka"),
-        "model": os.environ.get("SARVAM_TTS_MODEL", "bulbul:v2"),
+        "model": os.environ.get("SARVAM_TTS_MODEL", "bulbul:v3"),
         "output_audio_codec": "mp3",  # WhatsApp plays mp3 voice messages; it does not accept wav
     }
+    if os.environ.get("SARVAM_SPEAKER"):  # optional: pick a specific voice, otherwise Sarvam's default
+        body["speaker"] = os.environ["SARVAM_SPEAKER"]
     try:
         resp = requests.post(TTS_URL, headers={"api-subscription-key": _key()}, json=body, timeout=60)
         if resp.status_code != 200:
