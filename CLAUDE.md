@@ -82,7 +82,7 @@ Team: Jeet Doshi, Divya Bharti, Anushree Laddhad (who built/can explain what)
 ```
 
 ## 9. Fill in at 10:00 AM
-- **Problem case:** _(paste here)_
-- **Envelope chosen and constraint:** _(paste here)_
+- **Problem case:** India runs on WhatsApp (exam notices as forwarded PDFs, clinics confirming by voice note, kiranas taking orders on chat and tracking credit in a notebook, societies collecting maintenance via payment screenshots). Pick one real process that runs on WhatsApp groups/forwards/screenshots/voice notes, prove where it breaks, and redesign it so it no longer depends on that jugaad.
+- **Envelope chosen and constraint:** **A: ECHO.** "They don't type. They talk, and they'll keep talking." Users communicate by voice note and won't change. The system's way in must be a voice note, in the language the user chooses, and it must lead to something the process can act on.
 - **TeamID:** REW-NAD3SS (Drive folder: `REWIRED_REW-NAD3SS_MWRTMB`)
 - **Stack we know:** None. The team is almost entirely non-technical. **Claude Code chooses the stack** (see section 6A).
