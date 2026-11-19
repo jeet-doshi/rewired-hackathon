@@ -36,6 +36,9 @@ def _meta_base():
 
 
 def meta_configured():
+    # WHATSAPP_PROVIDER=twilio on Render forces Twilio (delete it to roll back to Meta)
+    if os.environ.get("WHATSAPP_PROVIDER", "").lower() == "twilio":
+        return False
     return bool(_meta_token() and _meta_phone_id())
 
 
