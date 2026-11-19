@@ -7,7 +7,8 @@ WeWED: the planner sends **one voice note in any language** -> AI makes tasks ->
 ## Live links
 - App: https://wewed-assistant.onrender.com  · Demo dashboard: https://wewed-assistant.onrender.com/w/demo
 - Simulator (backup demo): https://wewed-assistant.onrender.com/w/demo/sim
-- WhatsApp: send to **+1 737 250 8034** (Twilio, receives) -> replies arrive from **+1 555 169 1720** (Meta test number)
+- WhatsApp bot: **+1 555 169 1720** (Meta WhatsApp Cloud API test number; save it as "WeWED Bot"). Only phones registered as testers in Meta (max 5) can use it.
+- Backup inbound: +1 737 250 8034 (Twilio trial) also reaches the same app; replies still come from the Meta number.
 
 ## What each file does
 | File | Plain English |
@@ -31,7 +32,7 @@ Voice note -> WhatsApp -> our server -> **Sarvam** writes down the words -> **Ge
 
 ## Real vs demo
 - **Real**: voice transcription, task extraction, translation, voice replies, WhatsApp in/out, reminders, escalation, photo proof, dashboard, signup, join code, ask-the-assistant.
-- **Demo shortcuts**: reminders every 2 minutes (would be hours); Ayush/Imran etc. are fake numbers (+91000...) living in the simulator; WhatsApp uses free test accounts (Twilio trial receives, Meta test number replies; Meta app not yet published so it can't receive yet). Production needs a verified WhatsApp Business number.
+- **Demo shortcuts**: reminders every 2 minutes (would be hours); Ayush/Imran etc. are fake numbers (+91000...) living in the simulator; WhatsApp uses Meta's free **test number**, so its name shows as "Test Number" and no profile photo (Meta locks branding on brand-new business accounts; a verified number shows "WeWED Bot" + logo). Production needs a verified WhatsApp Business number.
 
 ## 10 likely judge questions
 1. **Why not just a WhatsApp group?** Groups scroll away, nobody owns a task, no reminders, no proof, no per-wedding view. We keep WhatsApp as the front door but the record lives in a database.

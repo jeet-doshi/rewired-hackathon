@@ -19,7 +19,7 @@
 
 ## Architecture
 ```
-Planner WhatsApp voice note ─► WhatsApp API (Meta Cloud API / Twilio) ─► /meta or /whatsapp webhook (Flask, app.py)
+Planner WhatsApp voice note ─► Meta WhatsApp Cloud API ─► /meta webhook (Flask, app.py)   [Twilio /whatsapp = backup]
    ─► voice.py  Sarvam speech-to-text (text + language)
    ─► ai.py     Gemini: who / what / by when / photo needed? + translate per assignee
    ─► bot.py    "Which wedding? 1-4" ─► save tasks ─► message each person (text + Sarvam voice note)
@@ -48,7 +48,7 @@ Deploy: Render Blueprint (`render.yaml`) creates the web service + free Postgres
 - WhatsApp **simulator** that runs the exact same bot logic (demo fallback)
 
 **Partial / honest limits:**
-- WhatsApp access is via **free test/trial accounts**, combined: messages are **received** on Twilio's trial number (+1 737 250 8034) and the bot **replies** from Meta's free test number (+1 555 169 1720), because Twilio's trial only allows template replies and Meta's unpublished test app can send but not yet receive. Meta test numbers reach up to 5 registered phones. A production launch uses one verified WhatsApp Business number for both.
+- WhatsApp runs on **Meta's WhatsApp Cloud API free test number (+1 555 169 1720)**: it works only with up to 5 registered tester phones, shows the name "Test Number", and Meta locked profile-photo changes on our brand-new business account, so the WeWED logo appears on the website, not yet as the WhatsApp DP. Twilio's trial number (+1 737 250 8034) is kept as a backup way in (its trial cannot send free-form replies). A production launch uses one verified WhatsApp Business number named "WeWED Bot".
 - Reminder gaps are **minutes** in demo mode (hours in real life) so judges can see them.
 - Demo team members use fake numbers (+91000...) and live in the simulator.
 - Access control (who sees what) is minimal: the dashboard link is secret; per-role permissions are next.
