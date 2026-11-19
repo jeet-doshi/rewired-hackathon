@@ -295,6 +295,14 @@ def meta_webhook():
     data = request.get_json(silent=True) or {}
     for entry in data.get("entry", []):
         for change in entry.get("changes", []):
+            # Delivery reports: if WhatsApp could not deliver a reply, show the reason in the live feed
+            for st in change.get("value", {}).get("statuses", []):
+                if st.get("status") == "failed":
+                    errs = "; ".join(f"{e.get('code')} {e.get('title')} {e.get('error_data', {}).get('details', '')}"
+                                     for e in st.get("errors", []))
+                    member = db.member_by_phone("+" + st.get("recipient_id", ""))
+                    db.log_message(member["planner_id"] if member else None, "+" + st.get("recipient_id", ""),
+                                   "out", f"⚠️ WhatsApp could not deliver: {errs}", "")
             for msg in change.get("value", {}).get("messages", []):
                 if msg.get("id") in _seen_meta_ids:  # Meta sometimes delivers the same message twice
                     continue
