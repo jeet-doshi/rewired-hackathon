@@ -48,8 +48,7 @@ Deploy: Render Blueprint (`render.yaml`) creates the web service + free Postgres
 - WhatsApp **simulator** that runs the exact same bot logic (demo fallback)
 
 **Partial / honest limits:**
-- **Real WhatsApp in, replies in the simulator.** Messages and voice notes sent on real WhatsApp to **+1 737 250 8034** (Twilio trial) reach the live app and create tasks on the dashboard. Twilio's free trial only lets the bot reply with Twilio's fixed templates, so the bot's replies (and team members' side) are shown in the on-screen simulator.
-- We also built full **Meta WhatsApp Cloud API** support (`/meta` webhook, text/voice/photo sending; one real reply was delivered to our phone), but Meta **banned our brand-new test business account during the event** (account review "REJECTED", number "BANNED"), so it is switched off. With a verified WhatsApp Business number (named "WeWED Bot", with our logo) the same code runs fully on WhatsApp.
+- WhatsApp runs on **Meta's WhatsApp Cloud API free test number (+1 555 169 1720)**: it works only with up to 5 registered tester phones, shows the name "Test Number", and Meta locked profile-photo changes on our brand-new business account, so the WeWED logo appears on the website, not yet as the WhatsApp DP. Twilio's trial number (+1 737 250 8034) is kept as a backup way in (its trial cannot send free-form replies). A production launch uses one verified WhatsApp Business number named "WeWED Bot".
 - Reminder gaps are **minutes** in demo mode (hours in real life) so judges can see them.
 - Demo team members use fake numbers (+91000...) and live in the simulator.
 - Access control (who sees what) is minimal: the dashboard link is secret; per-role permissions are next.

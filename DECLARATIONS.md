@@ -10,8 +10,8 @@
 - **Google Gemini API** (inside the app): reads the text, splits it into tasks (who, what, by when, photo needed), translates each task into the assignee's language, and answers questions from the app's own data. (Backup: can listen to audio directly if Sarvam is unavailable.)
 
 ## APIs and services
-- **Twilio WhatsApp (trial)**: real WhatsApp messages and voice notes reach the app through it (its trial only allows template replies).
-- **Meta WhatsApp Cloud API** (free test number): integration built and tested; Meta banned the new test account during the event, so it is switched off.
+- **Meta WhatsApp Cloud API** (free test number): the WhatsApp bot - receives and sends messages, voice notes and photos.
+- **Twilio WhatsApp (trial)**: backup way for messages to reach the app (its trial only allows template replies).
 - **Pillow** (Python imaging library): used once to draw the WeWED logo (created today).
 - **Render** (free tier): hosts the web app and its Postgres database.
 
