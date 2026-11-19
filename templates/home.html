@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block body %}
+<section>
+  <hgroup>
+    <h1>Stop running 4 weddings out of 40 WhatsApp groups.</h1>
+    <p>Send one voice note, in any language. WeWED turns it into tasks, sends each person their own task on WhatsApp,
+      reminds them until it's done, and collects photo proof — all on one dashboard.</p>
+  </hgroup>
+  <div class="grid">
+    <article><h4>🎤 Talk, don't type</h4>"Ayush, buses confirm karo kal 5 baje tak. Imran, stage ka photo bhejo Friday tak."</article>
+    <article><h4>💍 Pick the wedding</h4>The bot asks "Which wedding? 1–4". One tap, and every task is filed.</article>
+    <article><h4>⏰ Reminders + 📷 proof</h4>People get nudged until they reply DONE — with a photo when proof is needed.</article>
+  </div>
+</section>
+
+<section>
+  <h2>Create your workspace</h2>
+  {% if error %}<p class="banner">{{ error }}</p>{% endif %}
+  <form method="post" action="/signup">
+    <div class="grid">
+      <label>Your name <input name="name" required placeholder="Riya Kapoor" value="{{ form.name if form else '' }}"></label>
+      <label>Business name <input name="business" required placeholder="Shubh Events" value="{{ form.business if form else '' }}"></label>
+      <label>Your WhatsApp number <input name="phone" required placeholder="+91 98450 12345" value="{{ form.phone if form else '' }}"></label>
+    </div>
+    <h4>Your weddings this month</h4>
+    {% for i in range(1, 5) %}
+    <div class="grid">
+      <input name="w{{ i }}_name" placeholder="Wedding {{ i }} name (e.g. Sharma - Iyer)" {% if i == 1 %}required{% endif %}>
+      <input name="w{{ i }}_date" type="date">
+      <input name="w{{ i }}_venue" placeholder="Venue">
+    </div>
+    {% endfor %}
+    <button type="submit">Create workspace & get join code</button>
+    <p class="muted">You'll get a dashboard link (your magic link) and a join code to share with your team and vendors.</p>
+  </form>
+</section>
+{% endblock %}

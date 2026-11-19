@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block body %}
+<article style="max-width:480px;margin:auto">
+  <h3>Log in with WhatsApp</h3>
+  {% if sent %}
+    <p>✅ If that number has a workspace, we've sent your dashboard link to it on WhatsApp.</p>
+  {% else %}
+    <p>No passwords. Enter your WhatsApp number and we'll send you your magic link. (You can also send <b>DASHBOARD</b> to the bot.)</p>
+    <form method="post">
+      <input name="phone" required placeholder="+91 98450 12345">
+      <button type="submit">Send my link</button>
+    </form>
+  {% endif %}
+</article>
+{% endblock %}

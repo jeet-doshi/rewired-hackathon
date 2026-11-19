@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}{{ planner.business }} · WeWED{% endblock %}
+{% block nav %}
+<li><a href="/w/{{ planner.token }}/sim">📱 WhatsApp simulator</a></li>
+{% if planner.is_demo %}<li><form method="post" action="/w/{{ planner.token }}/reset" style="margin:0"
+  onsubmit="return confirm('Reset the demo workspace to its starting data?')"><button class="secondary outline" style="padding:4px 12px">↺ Reset demo</button></form></li>{% endif %}
+{% endblock %}
+{% block body %}
+
+{% if not ai_ready or not twilio_ready %}
+<p class="banner">Setup: {% if not ai_ready %}AI (Gemini key) is not connected. {% endif %}
+{% if not twilio_ready %}Real WhatsApp (Twilio) is not connected — messages appear only in the simulator.{% endif %}</p>
+{% endif %}
+
+<hgroup>
+  <h2>{{ planner.business }}</h2>
+  <p>Planner: {{ planner.name }} · {{ planner.phone }} · Join code <b>{{ planner.join_code }}</b></p>
+</hgroup>
+
+<details {% if welcome %}open{% endif %}>
+  <summary>👥 Invite your team & vendors (join code <b>{{ planner.join_code }}</b>)</summary>
+  <article>
+    <ol>
+      {% if sandbox_join %}<li>Everyone (you too) sends <b>{{ sandbox_join }}</b> to <b>{{ sandbox_number }}</b> on WhatsApp — one time only
+        (<a target="_blank" href="https://wa.me/{{ sandbox_number|replace('+','') }}?text={{ sandbox_join|urlencode }}">open WhatsApp</a>).</li>{% endif %}
+      <li>Team members and vendors then send <b>JOIN {{ planner.join_code }} Their Name</b>
+        (<a target="_blank" href="https://wa.me/{{ sandbox_number|replace('+','') }}?text={{ ('JOIN ' ~ planner.join_code ~ ' ')|urlencode }}">open WhatsApp</a>).</li>
+      <li>You (the planner) just send voice notes to the same number.</li>
+    </ol>
+    <label>Message to forward <textarea rows="4" readonly onclick="this.select()">{{ invite }}</textarea></label>
+    <p class="muted">Your private dashboard link (keep it safe): <a href="{{ link }}">{{ link }}</a></p>
+  </article>
+</details>
+
+<div class="stats">
+  <div class="stat"><b>{{ stats.open }}</b>open tasks</div>
+  <div class="stat"><b style="color:#a1201b">{{ stats.overdue }}</b>overdue</div>
+  <div class="stat"><b style="color:#11663a">{{ stats.done }}</b>done</div>
+  <div class="stat"><b>{{ stats.proofs }}</b>photo proofs</div>
+</div>
+
+<div class="tabs">
+  <a href="/w/{{ planner.token }}" role="button" class="{% if wedding_id %}outline{% endif %}">All weddings</a>
+  {% for w in weddings %}
+  <a href="/w/{{ planner.token }}?wedding={{ w.id }}" role="button" class="{% if wedding_id != w.id %}outline{% endif %}">
+    💍 {{ w.name }} <small>({{ w.done }}/{{ w.total }}{% if w.overdue %}, {{ w.overdue }} late{% endif %})</small></a>
+  {% endfor %}
+</div>
+
+<div class="grid2">
+<div>
+  <h4>Tasks</h4>
+  <div class="overflow-auto">
+  <table class="striped">
+    <thead><tr><th>#</th><th>Task</th><th>Who</th><th>Wedding</th><th>Due</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for t in tasks %}
+    <tr>
+      <td>{{ t.id }}</td>
+      <td>{{ t.task }}{% if t.task_original and t.task_original != t.task %}<br><span class="muted">🗣 {{ t.task_original }}</span>{% endif %}
+        {% if t.needs_proof %}<br><span class="muted">📷 proof needed</span>{% endif %}
+        {% if t.source in ('voice','text') %}<br><span class="muted">via WhatsApp {{ t.source }}</span>{% endif %}</td>
+      <td>{% if t.assignee_name %}{{ t.assignee_name }}{% else %}
+        <form method="post" action="/w/{{ planner.token }}/task/{{ t.id }}/assign?wedding={{ wedding_id or '' }}" style="margin:0">
+          <select name="assignee_id" onchange="this.form.submit()" style="padding:2px;font-size:12px">
+            <option value="">— assign —</option>
+            {% for m in members if m.role != 'planner' %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
+          </select></form>{% endif %}</td>
+      <td>{{ t.wedding_name }}</td>
+      <td>{{ t.due_text }}</td>
+      <td>
+        {% if t.status == 'done' %}<span class="pill done">done</span>
+        {% elif t.overdue %}<span class="pill overdue">overdue</span>
+        {% else %}<span class="pill pending">pending</span>{% endif %}
+        <br><span class="muted">{{ t.reminders_sent or 0 }} reminders{% if t.escalated %} · escalated{% endif %}</span>
+        {% if t.proof_mime %}<br><a href="/proof/{{ t.id }}/{{ planner.token }}" target="_blank"><img class="proof" src="/proof/{{ t.id }}/{{ planner.token }}" alt="proof"></a>{% endif %}
+      </td>
+      <td class="row-actions">
+        {% if t.status == 'pending' %}
+          {% if t.assignee_name %}<form method="post" action="/w/{{ planner.token }}/task/{{ t.id }}/nudge?wedding={{ wedding_id or '' }}"><button class="outline">⏰ Nudge</button></form>{% endif %}
+          <form method="post" action="/w/{{ planner.token }}/task/{{ t.id }}/done?wedding={{ wedding_id or '' }}"><button class="outline secondary">✓ Done</button></form>
+        {% else %}
+          <form method="post" action="/w/{{ planner.token }}/task/{{ t.id }}/reopen?wedding={{ wedding_id or '' }}"><button class="outline secondary">↺</button></form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="muted">No tasks yet. Send a voice note to the bot, or add one below.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <details>
+    <summary>➕ Add a task by hand</summary>
+    <form method="post" action="/w/{{ planner.token }}/task/new?wedding={{ wedding_id or '' }}">
+      <input name="task" required placeholder="What needs to be done?">
+      <div class="grid">
+        <select name="assignee_id" required>
+          {% for m in members if m.role != 'planner' %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
+        </select>
+        <select name="wedding_id" required>
+          {% for w in weddings %}<option value="{{ w.id }}" {% if wedding_id == w.id %}selected{% endif %}>{{ w.name }}</option>{% endfor %}
+        </select>
+        <input name="due" type="datetime-local">
+      </div>
+      <label><input type="checkbox" name="needs_proof"> Needs photo proof</label>
+      <button type="submit">Send task on WhatsApp</button>
+    </form>
+  </details>
+</div>
+
+<div>
+  <h4>🤖 Ask your assistant</h4>
+  <form id="askForm" onsubmit="ask(event)">
+    <input id="q" placeholder="What's pending for the Sharma wedding?">
+  </form>
+  <div id="answer" class="muted" style="white-space:pre-wrap;margin-bottom:16px"></div>
+
+  <h4>👥 Team & vendors</h4>
+  <table>
+    {% for m in members %}
+    <tr><td><b>{{ m.name }}</b><br><span class="muted">{{ m.role }} · {{ m.specialty or '-' }}</span></td>
+      <td>{% if m.role != 'planner' %}{{ m.open }} open{% if m.overdue %} · <span style="color:#a1201b">{{ m.overdue }} late</span>{% endif %}{% endif %}</td></tr>
+    {% endfor %}
+  </table>
+
+  <h4>💬 Live WhatsApp activity</h4>
+  <div class="feed">
+    {% for msg in feed %}
+    <div><span class="muted">{{ msg.at[11:] }} {{ '→' if msg.direction == 'out' else '←' }} {{ msg.who }}</span>
+      {% if msg.media == 'audio' %}🎤 voice note {% elif msg.media == 'image' %}📷 photo {% endif %}{{ msg.body[:220] }}</div>
+    {% else %}<div class="muted">No messages yet.</div>{% endfor %}
+  </div>
+</div>
+</div>
+
+<script>
+  // Ask the assistant without reloading the page
+  async function ask(e) {
+    e.preventDefault();
+    const q = document.getElementById('q').value;
+    const out = document.getElementById('answer');
+    out.textContent = 'Thinking…';
+    const r = await fetch('/w/{{ planner.token }}/ask', {method: 'POST', headers: {'Content-Type': 'application/json'},
+                                                         body: JSON.stringify({q})});
+    out.textContent = (await r.json()).answer;
+  }
+  // Refresh every 20 seconds so new WhatsApp activity shows up (but not while you're typing or reading an answer)
+  setInterval(() => {
+    const typing = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+    const busy = document.querySelector('details[open]') || document.getElementById('answer').textContent;
+    if (!typing && !busy) location.reload();
+  }, 20000);
+</script>
+{% endblock %}

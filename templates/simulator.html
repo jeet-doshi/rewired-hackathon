@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Simulator · {{ planner.business }}{% endblock %}
+{% block nav %}<li><a href="/w/{{ planner.token }}">← Dashboard</a></li>{% endblock %}
+{% block body %}
+<style>
+  .chat { background:#e5ddd5; border-radius:12px; padding:14px; height:55vh; overflow:auto; }
+  .msg { max-width:80%; padding:8px 12px; border-radius:10px; margin:6px 0; white-space:pre-wrap; font-size:14px; color:#111; }
+  .in { background:#dcf8c6; margin-left:auto; } .out { background:#fff; }
+  .msg small { display:block; color:#777; font-size:11px; margin-top:4px; }
+</style>
+<p class="muted">📱 <b>WhatsApp simulator</b> — the same bot logic as real WhatsApp, shown on screen. Use it to test, or to
+  act as team members with demo numbers. Messages to real phone numbers are also sent on WhatsApp.</p>
+
+<form method="get">
+  <label>Send as
+    <select name="phone" onchange="this.form.submit()">
+      {% for m in members %}<option value="{{ m.phone }}" {% if m.phone == phone %}selected{% endif %}>{{ m.name }} — {{ m.role }} ({{ m.phone }})</option>{% endfor %}
+      <option value="+910009999999" {% if phone == '+910009999999' %}selected{% endif %}>A new person (not joined yet)</option>
+    </select>
+  </label>
+</form>
+
+{% if error %}<p class="banner">Error: {{ error }}</p>{% endif %}
+
+<div class="chat" id="chat">
+  {% for m in messages %}
+  <div class="msg {{ 'in' if m.direction == 'in' else 'out' }}">{% if m.media == 'audio' %}🎤 <i>voice note</i> {% elif m.media == 'image' %}📷 <i>photo</i> {% endif %}{{ m.body }}<small>{{ m.at[11:] }}</small></div>
+  {% else %}<p class="muted">No messages yet. Say hi!</p>{% endfor %}
+</div>
+
+<form method="post" enctype="multipart/form-data" id="sendForm" style="margin-top:12px">
+  <input type="hidden" name="phone" value="{{ phone }}">
+  <div class="grid">
+    <input name="body" placeholder="Type a message… (e.g. DONE 12)" autofocus>
+    <input type="file" name="file" id="file" accept="audio/*,image/*">
+  </div>
+  <div class="grid">
+    <button type="button" class="secondary" id="recBtn">🎤 Record voice note</button>
+    <button type="submit" id="sendBtn">Send</button>
+  </div>
+  <p class="muted" id="recStatus">Attach a voice note (.ogg/.opus/.mp3 from WhatsApp) or a photo, or record one here.</p>
+</form>
+
+<script>
+  document.getElementById('chat').scrollTop = 1e9;
+  document.getElementById('sendForm').addEventListener('submit', () => {
+    document.getElementById('sendBtn').setAttribute('aria-busy', 'true');
+    document.getElementById('sendBtn').textContent = 'Thinking…';
+  });
+  // Record a voice note in the browser and attach it to the form as a file
+  let recorder, chunks = [];
+  document.getElementById('recBtn').onclick = async () => {
+    const btn = document.getElementById('recBtn'), status = document.getElementById('recStatus');
+    if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    const type = MediaRecorder.isTypeSupported('audio/ogg;codecs=opus') ? 'audio/ogg;codecs=opus' : 'audio/webm;codecs=opus';
+    recorder = new MediaRecorder(stream, {mimeType: type}); chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const ext = type.includes('ogg') ? 'ogg' : 'webm';
+      const file = new File(chunks, 'voice-note.' + ext, {type: type.split(';')[0]});
+      const dt = new DataTransfer(); dt.items.add(file);
+      document.getElementById('file').files = dt.files;
+      btn.textContent = '🎤 Record again'; status.textContent = '✅ Voice note recorded — press Send.';
+    };
+    recorder.start(); btn.textContent = '⏹ Stop recording'; status.textContent = '🔴 Recording… speak in any language.';
+  };
+</script>
+{% endblock %}

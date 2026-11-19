@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}WeWED Planner Assistant{% endblock %}</title>
+  <!-- Pico CSS: a small open-source stylesheet that makes plain HTML look clean -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
+  <style>
+    :root { --pico-font-size: 15px; }
+    .brand { font-weight: 800; color: #b0306a; text-decoration: none; }
+    .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+    .pending { background:#fff3cd; color:#7a5b00; } .done { background:#d1f2dd; color:#11663a; }
+    .overdue { background:#fde2e1; color:#a1201b; } .muted { color:#888; font-size:13px; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:20px; }
+    .stat { background:var(--pico-card-background-color); border:1px solid var(--pico-muted-border-color);
+            border-radius:10px; padding:12px 16px; } .stat b { font-size:26px; display:block; }
+    .row-actions form { display:inline; margin:0; } .row-actions button { padding:2px 10px; font-size:12px; margin:0 2px 2px 0; width:auto; }
+    table td, table th { font-size:14px; vertical-align:top; }
+    .tabs a { margin-right:6px; display:inline-block; margin-bottom:6px; }
+    .feed { max-height:420px; overflow:auto; font-size:13px; }
+    .feed div { padding:6px 0; border-bottom:1px solid var(--pico-muted-border-color); white-space:pre-wrap; }
+    .grid2 { display:grid; grid-template-columns: 2fr 1fr; gap:20px; }
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+    img.proof { max-width:70px; border-radius:6px; }
+    .banner { padding:10px 14px; border-radius:8px; background:#fff3cd; color:#7a5b00; margin-bottom:14px; font-size:14px; }
+  </style>
+</head>
+<body>
+<header class="container">
+  <nav>
+    <ul><li><a class="brand" href="/">💍 WeWED</a> <span class="muted">Planner Assistant</span></li></ul>
+    <ul>{% block nav %}<li><a href="/login">Log in</a></li><li><a href="/demo">Demo workspace</a></li>{% endblock %}</ul>
+  </nav>
+</header>
+<main class="container">
+{% block body %}{% endblock %}
+</main>
+<footer class="container muted">Team Khao Khao · Rewired Hackathon 2026 · All demo data is synthetic</footer>
+</body>
+</html>
