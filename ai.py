@@ -40,7 +40,7 @@ def _ask_gemini(prompt, audio=None, want_json=True):
     config = {"temperature": 0.2}
     if want_json:
         config["responseMimeType"] = "application/json"
-    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    model = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
     resp = requests.post(GEMINI_URL.format(model=model),
                          headers={"x-goog-api-key": _key()},
                          json={"contents": [{"role": "user", "parts": parts}], "generationConfig": config},

@@ -18,7 +18,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-flash-latest
       - key: SARVAM_API_KEY
         sync: false
       - key: TWILIO_ACCOUNT_SID
@@ -26,7 +26,7 @@ services:
       - key: TWILIO_AUTH_TOKEN
         sync: false
       - key: TWILIO_WHATSAPP_FROM
-        value: "+14155238886"
+        value: "+17372508034"
       - key: TWILIO_SANDBOX_JOIN
         sync: false
       - key: DEMO_PLANNER_PHONE
