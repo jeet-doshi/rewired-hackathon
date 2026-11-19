@@ -32,7 +32,7 @@ def _meta_phone_id():
 
 
 def _meta_base():
-    return META_API.format(version=os.environ.get("META_API_VERSION", "v23.0"))
+    return META_API.format(version=os.environ.get("META_API_VERSION", "v25.0"))
 
 
 def meta_configured():
