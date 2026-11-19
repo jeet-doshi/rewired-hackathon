@@ -1,0 +1,39 @@
+# Render "Blueprint": tells Render how to run our app and create its free Postgres database in one click.
+services:
+  - type: web
+    name: wewed-assistant
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # 1 worker so only ONE reminder loop runs; threads let it serve several requests at once
+    startCommand: gunicorn app:app --workers 1 --threads 8 --timeout 120
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wewed-db
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_WHATSAPP_FROM
+        value: "+14155238886"
+      - key: TWILIO_SANDBOX_JOIN
+        sync: false
+      - key: DEMO_PLANNER_PHONE
+        sync: false
+      - key: REMINDER_MINUTES
+        value: "2"
+      - key: MAX_REMINDERS
+        value: "3"
+
+databases:
+  - name: wewed-db
+    plan: free
