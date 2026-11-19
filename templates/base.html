@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}WeWED Planner Assistant{% endblock %}</title>
+  <link rel="icon" href="/static/wewed-logo.jpg">
   <!-- Pico CSS: a small open-source stylesheet that makes plain HTML look clean -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
   <style>
@@ -29,7 +30,7 @@
 <body>
 <header class="container">
   <nav>
-    <ul><li><a class="brand" href="/">💍 WeWED</a> <span class="muted">Planner Assistant</span></li></ul>
+    <ul><li><a class="brand" href="/"><img src="/static/wewed-logo.jpg" alt="WeWED" style="height:36px;border-radius:50%;vertical-align:middle"> WeWED</a> <span class="muted">Planner Assistant</span></li></ul>
     <ul>{% block nav %}<li><a href="/login">Log in</a></li><li><a href="/demo">Demo workspace</a></li>{% endblock %}</ul>
   </nav>
 </header>

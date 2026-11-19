@@ -127,7 +127,7 @@
     {% endfor %}
   </table>
 
-  <h4>💬 Live WhatsApp activity</h4>
+  <h4>💬 Live WhatsApp activity <span class="pill done">● live</span></h4>
   <div class="feed">
     {% for msg in feed %}
     <div><span class="muted">{{ msg.at[11:] }} {{ '→' if msg.direction == 'out' else '←' }} {{ msg.who }}</span>
@@ -148,11 +148,11 @@
                                                          body: JSON.stringify({q})});
     out.textContent = (await r.json()).answer;
   }
-  // Refresh every 20 seconds so new WhatsApp activity shows up (but not while you're typing or reading an answer)
+  // LIVE: refresh every 5 seconds so new WhatsApp activity shows up (but not while you're typing or reading an answer)
   setInterval(() => {
     const typing = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
     const busy = document.querySelector('details[open]') || document.getElementById('answer').textContent;
     if (!typing && !busy) location.reload();
-  }, 20000);
+  }, 5000);
 </script>
 {% endblock %}
