@@ -1,10 +1,50 @@
 {% extends "base.html" %}
 {% block body %}
+<style>
+  .hero { display:grid; grid-template-columns: 1.05fr 1fr; gap:30px; align-items:center; margin: 10px 0 40px; }
+  @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
+  .hero h1 { font-size: 44px; line-height: 1.08; letter-spacing: -1.5px; font-weight: 800; }
+  .hero h1 span { background: linear-gradient(90deg, #3b6cf6, #b0306a); -webkit-background-clip: text; color: transparent; }
+  .orbit-wrap { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; margin: auto; }
+  .ring { position:absolute; inset: 8%; border-radius:50%; border: 2px dashed rgba(59,108,246,.25); animation: spin 60s linear infinite; }
+  .ring.r2 { inset: 22%; border-style: solid; border-color: rgba(176,48,106,.12); animation-duration: 90s; animation-direction: reverse; }
+  .glow { position:absolute; inset: 18%; border-radius:50%; background: radial-gradient(circle, rgba(59,108,246,.22), transparent 70%); }
+  .center { position:absolute; left:50%; top:50%; width: 34%; aspect-ratio:1; transform: translate(-50%,-50%); border-radius:50%;
+            background: linear-gradient(135deg,#ffd9e8,#dfe8ff); display:grid; place-items:center; font-size: 64px;
+            box-shadow: 0 20px 50px rgba(59,108,246,.25); border: 6px solid #fff; }
+  .chip { position:absolute; background:#fff; border-radius: 12px; padding: 8px 12px; font-size: 12.5px; font-weight:600; color:#1d2340;
+          box-shadow: 0 10px 25px rgba(40,60,120,.14); white-space: nowrap; animation: floaty 4s ease-in-out infinite; }
+  .chip small { display:block; font-weight:400; color:#7a809a; font-size: 11px; }
+  .chip.wa { border-left: 4px solid #25d366; } .chip.v { border-left: 4px solid #3b6cf6; } .chip.ok { border-left: 4px solid #22c55e; }
+  .icon { position:absolute; width: 46px; height: 46px; border-radius: 14px; background:#fff; display:grid; place-items:center; font-size: 22px;
+          box-shadow: 0 10px 25px rgba(40,60,120,.14); animation: floaty 5s ease-in-out infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+<section class="hero">
+  <div>
+    <p class="pill" style="background:#e6edff;color:#3b6cf6">🎤 Built for planners who talk, not type</p>
+    <h1>Run <span>4 weddings</span> without 40 WhatsApp groups.</h1>
+    <p style="font-size:17px">Send one voice note in any language. WeWED turns it into tasks, sends each person their own task with a
+      voice note in <b>their</b> language, reminds them until it's done, and collects photo proof — live on one dashboard.</p>
+    <a href="/demo" role="button">Open demo workspace</a>
+    <a href="/film" role="button" class="outline" style="margin-left:8px">▶ Watch 60-second demo</a>
+  </div>
+  <div class="orbit-wrap">
+    <div class="glow"></div><div class="ring"></div><div class="ring r2"></div>
+    <div class="center">👩‍💼</div>
+    <div class="chip wa" style="left:-2%;top:12%">💬 Sharma Wedding Grp <small>214 unread</small></div>
+    <div class="chip v" style="right:-4%;top:8%;animation-delay:.6s">🎤 "Imran, stage photo…" <small>voice note · 0:12</small></div>
+    <div class="chip wa" style="left:-6%;bottom:22%;animation-delay:1.2s">💬 Decor Vendors <small>"bhaiya kal confirm?"</small></div>
+    <div class="chip ok" style="right:-2%;bottom:16%;animation-delay:1.8s">✅ #12 done by Divya <small>📷 photo proof</small></div>
+    <div class="chip" style="left:30%;bottom:-2%;animation-delay:.9s">⏰ Reminder sent <small>to Anushree · due 5 PM</small></div>
+    <div class="icon" style="left:12%;top:40%;animation-delay:.3s">📞</div>
+    <div class="icon" style="right:8%;top:42%;animation-delay:1.5s">🗓️</div>
+    <div class="icon" style="left:44%;top:-2%;animation-delay:2.1s">💍</div>
+  </div>
+</section>
 <section>
   <hgroup>
-    <h1>Stop running 4 weddings out of 40 WhatsApp groups.</h1>
-    <p>Send one voice note, in any language. WeWED turns it into tasks, sends each person their own task on WhatsApp,
-      reminds them until it's done, and collects photo proof — all on one dashboard.</p>
+    <h2>How it works</h2>
   </hgroup>
   <div class="grid">
     <article><h4>🎤 Talk, don't type</h4>"Ayush, buses confirm karo kal 5 baje tak. Imran, stage ka photo bhejo Friday tak."</article>

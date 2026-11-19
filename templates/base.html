@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,31 +7,53 @@
   <link rel="icon" href="/static/wewed-logo.jpg">
   <!-- Pico CSS: a small open-source stylesheet that makes plain HTML look clean -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    :root { --pico-font-size: 15px; }
-    .brand { font-weight: 800; color: #b0306a; text-decoration: none; }
+    /* ---- Look & feel: light SaaS style (soft gradient, white glass cards, gentle motion) ---- */
+    :root {
+      --pico-font-size: 15px; --pico-font-family: 'Inter', system-ui, sans-serif;
+      --brand: #b0306a; --blue: #3b6cf6; --ink: #1d2340;
+      --pico-primary: #3b6cf6; --pico-primary-background: #3b6cf6; --pico-primary-hover-background: #2c55d6;
+      --pico-border-radius: 12px;
+    }
+    body { color: var(--ink);
+      background: radial-gradient(1200px 600px at 10% -10%, #dfe8ff 0%, transparent 60%),
+                  radial-gradient(900px 500px at 110% 10%, #ffe3ef 0%, transparent 55%), #f6f8fd; min-height: 100vh; }
+    .brand { font-weight: 800; color: var(--brand); text-decoration: none; letter-spacing: -0.3px; }
+    article, .stat, .glass { background: rgba(255,255,255,.82); backdrop-filter: blur(8px);
+      border: 1px solid rgba(59,108,246,.10); box-shadow: 0 10px 30px rgba(40,60,120,.08); border-radius: 16px; }
     .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; }
-    .pending { background:#fff3cd; color:#7a5b00; } .done { background:#d1f2dd; color:#11663a; }
-    .overdue { background:#fde2e1; color:#a1201b; } .muted { color:#888; font-size:13px; }
-    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:20px; }
-    .stat { background:var(--pico-card-background-color); border:1px solid var(--pico-muted-border-color);
-            border-radius:10px; padding:12px 16px; } .stat b { font-size:26px; display:block; }
+    .pending { background:#fff4d6; color:#8a6400; } .done { background:#d9f7e6; color:#11663a; }
+    .overdue { background:#ffe1e0; color:#a1201b; } .muted { color:#7a809a; font-size:13px; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin-bottom:22px; }
+    .stat { padding:14px 18px; } .stat b { font-size:30px; display:block; letter-spacing:-1px; }
     .row-actions form { display:inline; margin:0; } .row-actions button { padding:2px 10px; font-size:12px; margin:0 2px 2px 0; width:auto; }
+    table { background: rgba(255,255,255,.75); border-radius: 14px; overflow: hidden; }
     table td, table th { font-size:14px; vertical-align:top; }
-    .tabs a { margin-right:6px; display:inline-block; margin-bottom:6px; }
+    .tabs a { margin-right:6px; display:inline-block; margin-bottom:6px; border-radius: 999px !important; }
     .feed { max-height:420px; overflow:auto; font-size:13px; }
-    .feed div { padding:6px 0; border-bottom:1px solid var(--pico-muted-border-color); white-space:pre-wrap; }
-    .grid2 { display:grid; grid-template-columns: 2fr 1fr; gap:20px; }
+    .feed div { padding:8px 10px; margin-bottom:6px; border-radius:10px; background:#fff; white-space:pre-wrap;
+                box-shadow: 0 2px 8px rgba(40,60,120,.06); }
+    .grid2 { display:grid; grid-template-columns: 2fr 1fr; gap:22px; }
     @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
-    img.proof { max-width:70px; border-radius:6px; }
-    .banner { padding:10px 14px; border-radius:8px; background:#fff3cd; color:#7a5b00; margin-bottom:14px; font-size:14px; }
+    img.proof { max-width:70px; border-radius:8px; }
+    .banner { padding:10px 14px; border-radius:10px; background:#fff4d6; color:#8a6400; margin-bottom:14px; font-size:14px; }
+    /* motion */
+    @keyframes fadeUp { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform:none; } }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,.5); } 50% { box-shadow: 0 0 0 8px rgba(34,197,94,0); } }
+    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    main article, .stat, .feed div, tbody tr { animation: fadeUp .5s ease both; }
+    .stat:nth-child(2) { animation-delay:.05s } .stat:nth-child(3) { animation-delay:.1s } .stat:nth-child(4) { animation-delay:.15s }
+    .live-dot { display:inline-block; width:9px; height:9px; border-radius:50%; background:#22c55e; animation: pulse 1.6s infinite; vertical-align: middle; }
+    header nav { padding-top: 6px; }
   </style>
 </head>
 <body>
 <header class="container">
   <nav>
-    <ul><li><a class="brand" href="/"><img src="/static/wewed-logo.jpg" alt="WeWED" style="height:36px;border-radius:50%;vertical-align:middle"> WeWED</a> <span class="muted">Planner Assistant</span></li></ul>
-    <ul>{% block nav %}<li><a href="/login">Log in</a></li><li><a href="/demo">Demo workspace</a></li>{% endblock %}</ul>
+    <ul><li><a class="brand" href="/"><img src="/static/wewed-logo.jpg" alt="WeWED" style="height:38px;border-radius:50%;vertical-align:middle;box-shadow:0 4px 12px rgba(176,48,106,.3)"> WeWED</a> <span class="muted">Planner Assistant</span></li></ul>
+    <ul>{% block nav %}<li><a href="/film">▶ Watch demo</a></li><li><a href="/login">Log in</a></li><li><a href="/demo" role="button" style="padding:6px 16px">Demo workspace</a></li>{% endblock %}</ul>
   </nav>
 </header>
 <main class="container">

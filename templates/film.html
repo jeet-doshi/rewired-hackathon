@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WeWED · Demo film</title>
+<link rel="icon" href="/static/wewed-logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* A 16:9 animated explainer. Each .scene shows for a few seconds; subtitles appear at the bottom.
+   Record it with Win + Alt + R (Windows) to get an .mp4 for the submission. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Inter', system-ui, sans-serif; color: #1d2340; overflow: hidden;
+  background: radial-gradient(1200px 700px at 15% -10%, #dfe8ff 0%, transparent 60%),
+              radial-gradient(900px 600px at 110% 20%, #ffe3ef 0%, transparent 55%), #f6f8fd; }
+.stage { position: absolute; inset: 0; }
+.scene { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; transition: opacity .7s ease; pointer-events: none; }
+.scene.on { opacity: 1; }
+.scene.on .a { animation: up .7s ease both; } .scene.on .a2 { animation: up .7s .35s ease both; } .scene.on .a3 { animation: up .7s .7s ease both; }
+.scene.on .a4 { animation: up .7s 1.05s ease both; } .scene.on .a5 { animation: up .7s 1.4s ease both; } .scene.on .a6 { animation: up .7s 1.75s ease both; }
+.a,.a2,.a3,.a4,.a5,.a6 { opacity: 0; }
+@keyframes up { from { opacity: 0; transform: translateY(24px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { opacity:0; transform: scale(.4); } 70% { transform: scale(1.08); } 100% { opacity:1; transform: scale(1); } }
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes wave { 0%,100% { height: 8px; } 50% { height: 34px; } }
+@keyframes type { from { width: 0; } to { width: 100%; } }
+@keyframes shake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+h1 { font-size: 64px; letter-spacing: -2px; font-weight: 800; }
+h2 { font-size: 44px; letter-spacing: -1.2px; font-weight: 800; text-align: center; }
+.grad { background: linear-gradient(90deg, #3b6cf6, #b0306a); -webkit-background-clip: text; color: transparent; }
+.card { background: #fff; border-radius: 18px; box-shadow: 0 18px 45px rgba(40,60,120,.14); padding: 18px 22px; }
+.chip { position: absolute; background: #fff; border-radius: 14px; padding: 10px 14px; font-weight: 600; font-size: 15px;
+        box-shadow: 0 12px 30px rgba(40,60,120,.16); white-space: nowrap; }
+.chip small { display:block; font-weight: 400; color: #7a809a; font-size: 12.5px; }
+.wa { border-left: 5px solid #25d366; } .blue { border-left: 5px solid #3b6cf6; } .green { border-left: 5px solid #22c55e; } .red { border-left: 5px solid #ef4444; }
+.scene.on .chip { animation: pop .6s ease both, floaty 4s 1s ease-in-out infinite; }
+.orbit { position: relative; width: 640px; height: 640px; }
+.ring { position: absolute; inset: 6%; border-radius: 50%; border: 2px dashed rgba(59,108,246,.28); animation: spin 50s linear infinite; }
+.ring.r2 { inset: 24%; border-style: solid; border-color: rgba(176,48,106,.14); animation-direction: reverse; }
+.avatar { position: absolute; left: 50%; top: 50%; width: 210px; height: 210px; transform: translate(-50%,-50%); border-radius: 50%;
+          background: linear-gradient(135deg, #ffd9e8, #dfe8ff); display: grid; place-items: center; font-size: 96px;
+          border: 8px solid #fff; box-shadow: 0 25px 60px rgba(59,108,246,.3); }
+.phone { width: 300px; height: 560px; border-radius: 38px; background: #111; padding: 12px; box-shadow: 0 30px 70px rgba(20,30,70,.3); }
+.screen { width: 100%; height: 100%; border-radius: 28px; background: #e9e2d8; overflow: hidden; display: flex; flex-direction: column; }
+.bar { background: #075e54; color: #fff; padding: 12px 14px; display: flex; gap: 10px; align-items: center; font-size: 14px; }
+.bar img { width: 34px; height: 34px; border-radius: 50%; }
+.msgs { padding: 12px; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; }
+.bub { background: #fff; padding: 9px 12px; border-radius: 12px; max-width: 92%; box-shadow: 0 1px 2px rgba(0,0,0,.08); line-height: 1.35; }
+.bub.me { background: #dcf8c6; align-self: flex-end; }
+.wavebox { display: flex; gap: 4px; align-items: center; height: 36px; }
+.wavebox i { width: 5px; background: #128c7e; border-radius: 3px; animation: wave 1s ease-in-out infinite; }
+.typed { overflow: hidden; white-space: normal; }
+.row { display: flex; gap: 40px; align-items: center; justify-content: center; }
+.stat { background:#fff; border-radius: 16px; padding: 16px 22px; box-shadow: 0 12px 30px rgba(40,60,120,.12); min-width: 150px; }
+.stat b { font-size: 40px; display: block; letter-spacing: -1px; }
+.bar2 { height: 12px; border-radius: 6px; background: #e6ebf7; overflow: hidden; margin-top: 8px; }
+.bar2 span { display: block; height: 100%; background: linear-gradient(90deg,#3b6cf6,#b0306a); width: 0; transition: width 2s ease; }
+.subs { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); background: rgba(20,24,45,.82); color: #fff;
+        padding: 12px 24px; border-radius: 12px; font-size: 24px; font-weight: 600; max-width: 80%; text-align: center; transition: opacity .3s; }
+.brandtag { position: absolute; left: 30px; top: 24px; display: flex; gap: 10px; align-items: center; font-weight: 800; color: #b0306a; font-size: 20px; }
+.brandtag img { width: 40px; height: 40px; border-radius: 50%; }
+#start { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(246,248,253,.92); z-index: 10; cursor: pointer; }
+#start div { text-align: center; }
+.cross { color: #ef4444; font-weight: 800; }
+.tick { color: #22c55e; font-weight: 800; }
+</style>
+</head>
+<body>
+<div class="brandtag"><img src="/static/wewed-logo.jpg" alt=""> WeWED</div>
+<div class="stage">
+
+  <!-- 1. Title -->
+  <section class="scene" data-t="6" data-sub="Meet Riya. She runs four weddings this month.">
+    <div style="text-align:center">
+      <img class="a" src="/static/wewed-logo.jpg" style="width:150px;border-radius:50%;box-shadow:0 25px 60px rgba(176,48,106,.35)">
+      <h1 class="a2" style="margin-top:22px">Talk once. <span class="grad">WeWED follows up.</span></h1>
+      <p class="a3" style="font-size:22px;color:#5a607a;margin-top:10px">The WhatsApp assistant for wedding planners</p>
+    </div>
+  </section>
+
+  <!-- 2. Chaos orbit -->
+  <section class="scene" data-t="8" data-sub="Every instruction lives in a WhatsApp group or a voice note... and gets lost.">
+    <div class="orbit">
+      <div class="ring"></div><div class="ring r2"></div>
+      <div class="avatar">👩‍💼</div>
+      <div class="chip wa" style="left:-14%;top:6%">💬 Sharma Wedding Grp <small>214 unread</small></div>
+      <div class="chip wa" style="right:-16%;top:10%;animation-delay:.3s">💬 Decor Vendors <small>"bhaiya kal confirm?"</small></div>
+      <div class="chip blue" style="left:-20%;top:44%;animation-delay:.6s">🎤 Voice note · 0:42 <small>from Mehta family</small></div>
+      <div class="chip wa" style="right:-20%;top:46%;animation-delay:.9s">💬 Caterers Bangalore <small>98 unread</small></div>
+      <div class="chip wa" style="left:-8%;bottom:6%;animation-delay:1.2s">💬 Khan–D'Souza Core <small>forwarded many times</small></div>
+      <div class="chip blue" style="right:-10%;bottom:4%;animation-delay:1.5s">🎤 Voice note · 1:05 <small>from DJ Sonu</small></div>
+      <div class="chip red" style="left:34%;top:-4%;animation-delay:1.8s">📊 40 groups · 600+ messages/day</div>
+    </div>
+  </section>
+
+  <!-- 3. Pain -->
+  <section class="scene" data-t="7" data-sub="No owner. No reminder. No proof. The planner carries it all in her head.">
+    <div>
+      <h2 class="a">Where it breaks</h2>
+      <div class="row" style="margin-top:36px">
+        <div class="card a2" style="font-size:20px"><span class="cross">✕</span> Who confirmed the buses?</div>
+        <div class="card a3" style="font-size:20px"><span class="cross">✕</span> Did decor send the photo?</div>
+        <div class="card a4" style="font-size:20px"><span class="cross">✕</span> Who follows up — and when?</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Voice note -->
+  <section class="scene" data-t="9" data-sub="With WeWED, Riya just talks — in Hindi, English, Kannada or a mix.">
+    <div class="row">
+      <div class="phone a"><div class="screen">
+        <div class="bar"><img src="/static/wewed-logo.jpg" alt=""><div><b>WeWED Bot</b><br><small>online</small></div></div>
+        <div class="msgs">
+          <div class="bub me a2"><div class="wavebox">🎤 <i style="animation-delay:0s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.5s"></i><i style="animation-delay:.6s"></i><i style="animation-delay:.7s"></i><i style="animation-delay:.8s"></i><i style="animation-delay:.9s"></i> 0:14</div></div>
+          <div class="bub a4">🎤 <i>I heard:</i> "Divya, kal shaam 5 baje tak mandap ka photo bhejo. Anushree, guest list Friday tak final karo."</div>
+        </div>
+      </div></div>
+      <div class="a3" style="max-width:420px">
+        <h2 style="text-align:left">One voice note.<br><span class="grad">Any language.</span></h2>
+        <p style="font-size:20px;color:#5a607a;margin-top:12px">Sarvam AI listens to Indian languages and accents — Hinglish included.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Tasks + which wedding -->
+  <section class="scene" data-t="8" data-sub="AI turns it into tasks with owners and deadlines — then asks which wedding.">
+    <div class="row">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card a" style="width:420px;border-left:6px solid #3b6cf6"><b>#12 · Divya</b><br>Send photo of the mandap decor<br><span style="color:#7a809a">⏰ Fri 5:00 PM · 📷 proof needed</span></div>
+        <div class="card a2" style="width:420px;border-left:6px solid #b0306a"><b>#13 · Anushree</b><br>Finalise guest list, send to caterer<br><span style="color:#7a809a">⏰ Fri 6:00 PM</span></div>
+      </div>
+      <div class="card a4" style="font-size:19px;line-height:1.7">💍 <b>Which wedding?</b><br>
+        <span class="tick">✓</span> 1️⃣ Sharma – Iyer<br>2️⃣ Mehta – Rao<br>3️⃣ Khan – D'Souza<br>4️⃣ Reddy – Nair</div>
+    </div>
+  </section>
+
+  <!-- 6. Phones receive -->
+  <section class="scene" data-t="9" data-sub="Each person gets their own task — as text and a voice note in their language.">
+    <div class="row">
+      <div class="phone a"><div class="screen">
+        <div class="bar"><img src="/static/wewed-logo.jpg" alt=""><div><b>WeWED Bot</b><br><small>Divya's WhatsApp</small></div></div>
+        <div class="msgs">
+          <div class="bub a2">🔔 <b>New task from Riya</b><br>💍 Sharma – Iyer<br><b>#12: Send photo of the mandap decor</b><br>🗣 <i>कृपया कल शाम 5 बजे तक मंडप डेकोर की फोटो भेजें।</i><br>📷 Photo proof needed</div>
+          <div class="bub a3"><div class="wavebox">▶ <i></i><i style="animation-delay:.2s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.5s"></i> 0:06 · हिंदी</div></div>
+        </div>
+      </div></div>
+      <div class="phone a2"><div class="screen">
+        <div class="bar"><img src="/static/wewed-logo.jpg" alt=""><div><b>WeWED Bot</b><br><small>Anushree's WhatsApp</small></div></div>
+        <div class="msgs">
+          <div class="bub a4">🔔 <b>New task from Riya</b><br>💍 Sharma – Iyer<br><b>#13: Finalise the guest list and send it to the caterer</b><br>⏰ Due Fri 6:00 PM</div>
+          <div class="bub a5"><div class="wavebox">▶ <i></i><i style="animation-delay:.2s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.3s"></i> 0:05 · English</div></div>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 7. Reminder + done + proof -->
+  <section class="scene" data-t="8" data-sub="WeWED reminds them until it's done — and collects photo proof.">
+    <div class="row">
+      <div class="card a" style="font-size:20px"><span style="display:inline-block;animation:shake .6s 3">⏰</span> Reminder 2/3 → Divya<br><small style="color:#7a809a">#12 due today 5 PM</small></div>
+      <div class="card a3" style="font-size:20px">💬 Divya: <b>DONE 12</b> + 📷</div>
+      <div class="card a5" style="font-size:20px;border-left:6px solid #22c55e">✅ <b>#12 done</b> · photo attached<br><small style="color:#7a809a">Riya notified instantly</small></div>
+    </div>
+  </section>
+
+  <!-- 8. Dashboard -->
+  <section class="scene" data-t="9" data-sub="Riya sees every wedding, every person and every proof — live on one dashboard.">
+    <div style="width:980px">
+      <div class="row" style="justify-content:space-between">
+        <div class="stat a"><b class="count" data-to="18">0</b>open tasks</div>
+        <div class="stat a2"><b class="count" data-to="3" style="color:#ef4444">0</b>overdue</div>
+        <div class="stat a3"><b class="count" data-to="27" style="color:#22c55e">0</b>done</div>
+        <div class="stat a4"><b class="count" data-to="9">0</b>photo proofs</div>
+      </div>
+      <div class="card a5" style="margin-top:22px">
+        <b>💍 Sharma – Iyer</b> · 6 days to go <div class="bar2"><span data-w="78%"></span></div><br>
+        <b>💍 Mehta – Rao</b> · 13 days to go <div class="bar2"><span data-w="45%"></span></div><br>
+        <b>💍 Khan – D'Souza</b> · 20 days to go <div class="bar2"><span data-w="22%"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. End -->
+  <section class="scene" data-t="7" data-sub="WeWED — making the invisible work behind every wedding visible.">
+    <div style="text-align:center">
+      <img class="a" src="/static/wewed-logo.jpg" style="width:120px;border-radius:50%">
+      <h1 class="a2" style="margin-top:18px">Talk once. <span class="grad">WeWED follows up.</span></h1>
+      <p class="a3" style="font-size:22px;margin-top:14px">wewed-assistant.onrender.com</p>
+      <p class="a4" style="font-size:18px;color:#7a809a;margin-top:8px">Team Khao Khao · Rewired Hackathon 2026</p>
+    </div>
+  </section>
+</div>
+
+<div class="subs" id="subs" style="opacity:0"></div>
+<div id="start"><div><img src="/static/wewed-logo.jpg" style="width:110px;border-radius:50%"><h2 style="margin-top:16px">▶ Click to play</h2>
+  <p style="color:#7a809a;margin-top:8px">Start screen recording first (Win + Alt + R), then click. Press R to replay.</p></div></div>
+
+<script>
+// Plays the scenes one after another and shows each scene's subtitle.
+const scenes = [...document.querySelectorAll('.scene')];
+const subs = document.getElementById('subs');
+let timer;
+function show(i) {
+  scenes.forEach(s => s.classList.remove('on'));
+  if (i >= scenes.length) { subs.style.opacity = 0; scenes[scenes.length - 1].classList.add('on'); return; }
+  const s = scenes[i];
+  // restart CSS animations by re-inserting the scene
+  const clone = s.cloneNode(true); s.replaceWith(clone); scenes[i] = clone;
+  setTimeout(() => clone.classList.add('on'), 30);
+  subs.textContent = clone.dataset.sub; subs.style.opacity = 1;
+  clone.querySelectorAll('.count').forEach(el => {            // count-up numbers
+    const to = +el.dataset.to; let n = 0;
+    const step = setInterval(() => { n++; el.textContent = n; if (n >= to) clearInterval(step); }, 1400 / to);
+  });
+  setTimeout(() => clone.querySelectorAll('.bar2 span').forEach(b => b.style.width = b.dataset.w), 1500);
+  timer = setTimeout(() => show(i + 1), (+clone.dataset.t) * 1000);
+}
+function play() { clearTimeout(timer); document.getElementById('start').style.display = 'none'; show(0); }
+document.getElementById('start').onclick = play;
+document.addEventListener('keydown', e => { if (e.key === 'r' || e.key === 'R') play(); });
+</script>
+</body>
+</html>

@@ -138,7 +138,7 @@
     {% endfor %}
   </table>
 
-  <h4>💬 Live WhatsApp activity <span class="pill done">● live</span></h4>
+  <h4>💬 Live WhatsApp activity <span class="live-dot"></span> <small class="muted">live</small></h4>
   <div class="feed">
     {% for msg in feed if not (msg.body or '').startswith('⚠️ WhatsApp could not deliver') %}
     <div><span class="muted">{{ msg.at[11:] }} {{ '→' if msg.direction == 'out' else '←' }} {{ msg.who }}</span>

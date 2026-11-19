@@ -322,6 +322,12 @@ def meta_webhook():
     return "ok"  # answer Meta fast; real work happens in the background
 
 
+@app.get("/film")
+def film():
+    """A 70-second animated explainer (with subtitles) to screen-record as the demo video."""
+    return render_template("film.html")
+
+
 @app.get("/privacy")
 def privacy():
     """Privacy policy + data deletion instructions (Meta requires these links to publish the app)."""
