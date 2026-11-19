@@ -303,6 +303,12 @@ def meta_webhook():
     return "ok"  # answer Meta fast; real work happens in the background
 
 
+@app.get("/privacy")
+def privacy():
+    """Privacy policy + data deletion instructions (Meta requires these links to publish the app)."""
+    return render_template("privacy.html")
+
+
 @app.get("/health")
 def health():
     return "ok"
