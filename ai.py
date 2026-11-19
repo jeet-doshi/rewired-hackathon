@@ -5,6 +5,9 @@ AI is used for the messy human part: listening to voice notes in any Indian lang
 understanding "Ayush, decorator ko Friday tak confirm karo". Everything that must be exact
 (deadlines, reminders, who gets which message, status) is done by plain code in app.py.
 
+Voice notes are first turned into text by Sarvam AI (voice.py); Gemini then reads that text.
+(If no Sarvam key is set, Gemini can listen to the audio directly as a backup.)
+
 Three jobs:
   1. understand_planner()  - planner's voice/text -> list of tasks (who, what, by when, photo needed?) or a question
   2. understand_member()   - team member / vendor voice/text -> "is this saying a task is done?" + English summary
@@ -50,7 +53,8 @@ def _ask_gemini(prompt, audio=None, want_json=True):
 
 def understand_planner(text, audio, members, weddings, now):
     """Planner message -> {"intent": "tasks"|"question"|"other", "transcript", "language", "tasks": [...], "question"}"""
-    team = "\n".join(f"- id {m['id']}: {m['name']} ({m['role']}, {m['specialty'] or '-'})"
+    team = "\n".join(f"- id {m['id']}: {m['name']} ({m['role']}, {m['specialty'] or '-'}, "
+                     f"prefers language {m.get('language') or 'en-IN'})"
                      for m in members if m["role"] != "planner")
     wed = "\n".join(f"- {w['name']} on {w['date']} at {w['venue']}" for w in weddings)
     prompt = f"""You are the WhatsApp assistant of an Indian wedding planner. The planner sent a message
@@ -76,6 +80,9 @@ For "tasks", make ONE task per person per action. For each task give:
 - task: a short clear instruction in English, starting with a verb, max 20 words.
 - task_original: the same instruction in the language the planner used (in the script they would normally write it;
   Hindi may be in Roman letters). If they spoke English, repeat the English.
+- task_local: the same instruction translated into the ASSIGNEE's preferred language (see list above), written in
+  that language's native script (Hindi in Devanagari, Kannada in Kannada script, etc.), natural and polite,
+  max 25 words, including the deadline in words. For en-IN just write it in English.
 - due: deadline as "YYYY-MM-DD HH:MM" (IST) if said or implied: "by tomorrow evening" -> tomorrow 18:00,
   "by Friday" -> the coming Friday 18:00, "today" -> today 20:00, "in 2 hours" -> now + 2 hours,
   "before the wedding" -> the day before that wedding 18:00. null if no deadline at all.

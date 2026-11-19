@@ -6,7 +6,8 @@
 
 ## AI tools
 - **Claude Code (Anthropic, model Claude Opus 5.5)**: wrote most of the code, docs and plan with the team, who reviewed and directed every decision.
-- **Google Gemini API** (inside the app): listens to voice notes, splits them into tasks, answers questions from the app's own data.
+- **Sarvam AI API** (inside the app): Saarika speech-to-text turns voice notes in Indian languages into text and detects the language; Bulbul text-to-speech sends tasks and answers back as voice notes in each person's chosen language.
+- **Google Gemini API** (inside the app): reads the text, splits it into tasks (who, what, by when, photo needed), translates each task into the assignee's language, and answers questions from the app's own data. (Backup: can listen to audio directly if Sarvam is unavailable.)
 
 ## APIs and services
 - **Twilio WhatsApp Sandbox**: sends and receives WhatsApp messages (no Meta approval needed for the sandbox).

@@ -4,6 +4,7 @@
 ```
  Planner's phone ──voice note──►  WhatsApp (Twilio)  ──►  our app /whatsapp  ──►  bot.py decides what to do
                                                                                     │
+                         voice.py (Sarvam): voice note -> text + language ◄─┤
                                      ai.py (Gemini): "who should do what, by when?" ◄┘
                                                                                     │
  Ayush's phone ◄──"New task #12"── WhatsApp (Twilio) ◄── messaging.py ◄─────────────┤
@@ -17,7 +18,8 @@
 |---|---|
 | `app.py` | The web server: signup page, dashboard, simulator, and the `/whatsapp` address Twilio calls |
 | `bot.py` | The bot's brain: join codes, planner → tasks → "which wedding?", DONE + photo proof, reminders |
-| `ai.py` | The only AI: listens to voice notes, splits them into tasks, answers questions from our data |
+| `voice.py` | Sarvam AI: voice note → text (any Indian language), and text → voice note in each person's language |
+| `ai.py` | Gemini: reads the text, splits it into tasks, translates each task, answers questions from our data |
 | `messaging.py` | Sends WhatsApp messages through Twilio and downloads voice notes/photos |
 | `db.py` | Saves everything (SQLite on laptop, Postgres online) + the fake demo data + one-click reset |
 | `templates/*.html` | The pages people see |
@@ -25,11 +27,13 @@
 ## Step by step: one voice note
 1. Planner records *"Ayush, buses confirm karo kal 5 baje tak. Imran, stage ka photo bhejo Friday tak."*
 2. Twilio receives it and calls our `/whatsapp` address with a link to the audio. We reply "OK" instantly and work in the background.
-3. `ai.py` sends the audio + the list of team members + weddings + today's date to Gemini.
-   Gemini returns JSON: `[{assignee: Ayush, task: "Confirm buses", due: "2026-11-20 17:00", needs_proof: false}, {Imran ... needs_proof: true}]`.
+3. `voice.py` sends the audio to **Sarvam** (Indian speech AI), which returns the words and the language (e.g. `hi-IN`).
+   Then `ai.py` sends that text + the list of team members (with each person's chosen language) + weddings + today's date to Gemini.
+   Gemini returns JSON: `[{assignee: Ayush, task: "Confirm buses", task_local: "बसें कल 5 बजे तक कन्फर्म करो", due: "2026-11-20 17:00", needs_proof: false}, ...]`.
 4. `bot.py` checks every person really exists in the team (AI can't invent people), saves the tasks as "waiting",
    and asks the planner **"Which wedding? 1–4"**.
-5. Planner replies `1`. Tasks are saved to the database and each person gets their own WhatsApp message.
+5. Planner replies `1`. Tasks are saved to the database and each person gets their own WhatsApp message,
+   **plus a voice note in the language they chose when joining** (Sarvam text-to-speech). They can reply by voice too.
 6. **Reminder loop** (plain code, every 30 s): if a task is still open, nudge again
    (more often when the deadline is under 24 h away). After 3 reminders with no reply, the planner gets a warning.
 7. Ayush replies `DONE 12`. If the task needs proof, the bot asks for a photo first. The photo is saved and sent to the planner.

@@ -7,8 +7,9 @@
 {% endblock %}
 {% block body %}
 
-{% if not ai_ready or not twilio_ready %}
+{% if not ai_ready or not twilio_ready or not voice_ready %}
 <p class="banner">Setup: {% if not ai_ready %}AI (Gemini key) is not connected. {% endif %}
+{% if not voice_ready %}Voice (Sarvam key) is not connected. {% endif %}
 {% if not twilio_ready %}Real WhatsApp (Twilio) is not connected — messages appear only in the simulator.{% endif %}</p>
 {% endif %}
 
@@ -120,7 +121,7 @@
   <h4>👥 Team & vendors</h4>
   <table>
     {% for m in members %}
-    <tr><td><b>{{ m.name }}</b><br><span class="muted">{{ m.role }} · {{ m.specialty or '-' }}</span></td>
+    <tr><td><b>{{ m.name }}</b><br><span class="muted">{{ m.role }} · {{ m.specialty or '-' }} · 🗣 {{ languages.get(m.language, 'English') }}</span></td>
       <td>{% if m.role != 'planner' %}{{ m.open }} open{% if m.overdue %} · <span style="color:#a1201b">{{ m.overdue }} late</span>{% endif %}{% endif %}</td></tr>
     {% endfor %}
   </table>
@@ -129,7 +130,7 @@
   <div class="feed">
     {% for msg in feed %}
     <div><span class="muted">{{ msg.at[11:] }} {{ '→' if msg.direction == 'out' else '←' }} {{ msg.who }}</span>
-      {% if msg.media == 'audio' %}🎤 voice note {% elif msg.media == 'image' %}📷 photo {% endif %}{{ msg.body[:220] }}</div>
+      {% if msg.media and msg.media.startswith('audio:') %}🎤 <audio controls preload="none" src="{{ msg.media|clip_url }}" style="height:28px;vertical-align:middle"></audio> {% elif msg.media == 'image' %}📷 photo {% endif %}{{ msg.body[:220] }}</div>
     {% else %}<div class="muted">No messages yet.</div>{% endfor %}
   </div>
 </div>

@@ -83,14 +83,15 @@ CREATE TABLE IF NOT EXISTS planners (id SERIAL PRIMARY KEY, name TEXT, business 
   join_code TEXT UNIQUE, token TEXT UNIQUE, is_demo INTEGER DEFAULT 0, created_at TEXT);
 CREATE TABLE IF NOT EXISTS weddings (id SERIAL PRIMARY KEY, planner_id INTEGER, name TEXT, date TEXT, venue TEXT);
 CREATE TABLE IF NOT EXISTS members (id SERIAL PRIMARY KEY, planner_id INTEGER, name TEXT, phone TEXT,
-  role TEXT, specialty TEXT, joined_at TEXT);
+  role TEXT, specialty TEXT, language TEXT DEFAULT 'en-IN', joined_at TEXT);
 CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, planner_id INTEGER, wedding_id INTEGER, assignee_id INTEGER,
-  task TEXT, task_original TEXT, due_at TEXT, needs_proof INTEGER DEFAULT 0, status TEXT DEFAULT 'pending',
+  task TEXT, task_original TEXT, task_local TEXT, due_at TEXT, needs_proof INTEGER DEFAULT 0, status TEXT DEFAULT 'pending',
   created_at TEXT, done_at TEXT, reminders_sent INTEGER DEFAULT 0, last_reminded_at TEXT, escalated INTEGER DEFAULT 0,
   proof_image BYTEA, proof_mime TEXT, done_note TEXT, source TEXT);
 CREATE TABLE IF NOT EXISTS messages (id SERIAL PRIMARY KEY, planner_id INTEGER, phone TEXT, direction TEXT,
   body TEXT, media TEXT, at TEXT);
-CREATE TABLE IF NOT EXISTS states (phone TEXT PRIMARY KEY, kind TEXT, data TEXT, at TEXT)
+CREATE TABLE IF NOT EXISTS states (phone TEXT PRIMARY KEY, kind TEXT, data TEXT, at TEXT);
+CREATE TABLE IF NOT EXISTS audio_clips (id SERIAL PRIMARY KEY, data BYTEA, mime TEXT, at TEXT)
 """
 
 
@@ -167,10 +168,10 @@ def get_wedding(wedding_id):
 
 # ---------- members ----------
 
-def add_member(planner_id, name, phone, role, specialty=""):
-    m = one("INSERT INTO members (planner_id, name, phone, role, specialty, joined_at) "
-            "VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
-            (planner_id, name, phone, role, specialty, now_str()))
+def add_member(planner_id, name, phone, role, specialty="", language="en-IN"):
+    m = one("INSERT INTO members (planner_id, name, phone, role, specialty, language, joined_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
+            (planner_id, name, phone, role, specialty, language, now_str()))
     return get_member(m["id"])
 
 
@@ -201,18 +202,19 @@ def remove_phone_from_planner(planner_id, phone):
 
 TASK_SELECT = """
 SELECT t.*, m.name AS assignee_name, m.phone AS assignee_phone, m.role AS assignee_role,
-       m.specialty AS assignee_specialty, w.name AS wedding_name, w.date AS wedding_date
+       m.specialty AS assignee_specialty, m.language AS assignee_language, w.name AS wedding_name, w.date AS wedding_date
 FROM tasks t
 LEFT JOIN members m ON m.id = t.assignee_id
 LEFT JOIN weddings w ON w.id = t.wedding_id
 """
 
 
-def create_task(planner_id, wedding_id, assignee_id, task, task_original, due_at, needs_proof, source):
-    t = one("INSERT INTO tasks (planner_id, wedding_id, assignee_id, task, task_original, due_at, needs_proof, "
-            "status, created_at, last_reminded_at, source) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?) "
-            "RETURNING id",
-            (planner_id, wedding_id, assignee_id, task, task_original, due_at, 1 if needs_proof else 0,
+def create_task(planner_id, wedding_id, assignee_id, task, task_original, due_at, needs_proof, source, task_local=None):
+    """task = English; task_original = planner's own words; task_local = in the assignee's chosen language."""
+    t = one("INSERT INTO tasks (planner_id, wedding_id, assignee_id, task, task_original, task_local, due_at, "
+            "needs_proof, status, created_at, last_reminded_at, source) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?) RETURNING id",
+            (planner_id, wedding_id, assignee_id, task, task_original, task_local, due_at, 1 if needs_proof else 0,
              now_str(), now_str(), source))
     return get_task(t["id"])
 
@@ -286,6 +288,15 @@ def clear_state(phone):
     query("DELETE FROM states WHERE phone = ?", (phone,))
 
 
+def save_clip(data, mime):
+    """Store a voice note (incoming or generated) so it can be played back / sent via a link."""
+    return one("INSERT INTO audio_clips (data, mime, at) VALUES (?, ?, ?) RETURNING id", (data, mime, now_str()))["id"]
+
+
+def get_clip(clip_id):
+    return one("SELECT * FROM audio_clips WHERE id = ?", (clip_id,))
+
+
 # ---------- demo data (all synthetic) ----------
 
 def seed_demo():
@@ -310,17 +321,17 @@ def seed_demo():
     pid = p["id"]
     sim = SIMULATED_PREFIX
     people = [
-        ("Ayush", sim + "0000002", "team", "Logistics & venue"),
-        ("Rahul", sim + "0000003", "team", "Vendor coordination"),
-        ("Neha", sim + "0000004", "team", "Guest hospitality"),
-        ("Imran (Gulmohar Decor)", sim + "0000005", "vendor", "Decorator"),
-        ("Suresh (Annapurna Caterers)", sim + "0000006", "vendor", "Caterer"),
-        ("Kavya (Click Studio)", sim + "0000007", "vendor", "Photographer"),
-        ("DJ Sonu", sim + "0000008", "vendor", "DJ & sound"),
+        ("Ayush", sim + "0000002", "team", "Logistics & venue", "hi-IN"),
+        ("Rahul", sim + "0000003", "team", "Vendor coordination", "en-IN"),
+        ("Neha", sim + "0000004", "team", "Guest hospitality", "kn-IN"),
+        ("Imran (Gulmohar Decor)", sim + "0000005", "vendor", "Decorator", "hi-IN"),
+        ("Suresh (Annapurna Caterers)", sim + "0000006", "vendor", "Caterer", "kn-IN"),
+        ("Kavya (Click Studio)", sim + "0000007", "vendor", "Photographer", "ta-IN"),
+        ("DJ Sonu", sim + "0000008", "vendor", "DJ & sound", "hi-IN"),
     ]
     ids = {}
-    for name, phone, role, spec in people:
-        ids[name.split()[0]] = add_member(pid, name, phone, role, spec)["id"]
+    for name, phone, role, spec, lang in people:
+        ids[name.split()[0]] = add_member(pid, name, phone, role, spec, lang)["id"]
     w = {x["name"].split()[0]: x["id"] for x in weddings_of(pid)}
 
     seed_tasks = [
@@ -362,5 +373,5 @@ def reset_demo():
     query("DELETE FROM planners WHERE id = ?", (pid,))
     new_p = seed_demo()
     for m in real_members:
-        add_member(new_p["id"], m["name"], m["phone"], m["role"], m["specialty"])
+        add_member(new_p["id"], m["name"], m["phone"], m["role"], m["specialty"], m["language"])
     return new_p

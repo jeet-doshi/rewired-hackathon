@@ -20,6 +20,7 @@ import datetime as dt
 
 import db
 import ai
+import voice
 import messaging
 
 NUMBER_EMOJI = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
@@ -92,7 +93,17 @@ def handle_incoming(phone, body, media):
     image = next((m for m in media if m["mime"].startswith("image")), None)
     member = db.member_by_phone(phone)
     planner = db.get_planner(member["planner_id"]) if member else None
-    kind = "audio" if audio else ("image" if image else "")
+    kind = "image" if image else ""
+
+    # Voice note: keep a copy, then Sarvam turns it into text (+ detects the language)
+    voice_info = None
+    if audio:
+        kind = f"audio:{db.save_clip(audio[0], audio[1])}"
+        if voice.is_configured():
+            transcript, lang = voice.transcribe(audio[0], audio[1])
+            voice_info = {"transcript": transcript, "lang": lang}
+            body = (body + " " + transcript).strip()
+            audio = None  # from here on, everyone works with the text
     db.log_message(planner["id"] if planner else None, phone, "in", body, kind)
 
     if re.match(r"^join\b", body, re.I):
@@ -102,11 +113,11 @@ def handle_incoming(phone, body, media):
                                  "*JOIN <code> <your name>*  e.g. JOIN SHUBH-DEC Ayush")
 
     state = db.get_state(phone)
-    if state and state["kind"] in ("pick_role", "ask_specialty"):
+    if state and state["kind"] in ("pick_role", "ask_specialty", "ask_language"):
         return handle_onboarding(member, planner, body, state)
     if member["role"] == "planner":
-        return planner_flow(member, planner, body, audio, image, state)
-    return member_flow(member, planner, body, audio, image, state)
+        return planner_flow(member, planner, body, audio, image, state, voice_info)
+    return member_flow(member, planner, body, audio, image, state, voice_info)
 
 
 # ---------- joining a workspace with the join code ----------
@@ -140,20 +151,30 @@ def handle_onboarding(member, planner, body, state):
         question = ("What do you supply? (e.g. Decor, Catering, Photography)" if role == "vendor"
                     else "What do you handle? (e.g. Logistics, Guests, Vendors)")
         return send(planner["id"], phone, question)
-    # ask_specialty
-    specialty = body.strip()[:60] or "-"
-    db.update_member(member["id"], specialty=specialty)
+    if state["kind"] == "ask_specialty":
+        db.update_member(member["id"], specialty=body.strip()[:60] or "-")
+        db.set_state(phone, "ask_language", {"member_id": member["id"]})
+        options = "\n".join(f"{i}. {name}" for i, (code, name) in enumerate(voice.LANGUAGES, 1))
+        return send(planner["id"], phone, f"🗣 Which language should I talk to you in?\n{options}\nReply with the number.")
+    # ask_language: the language the user CHOOSES; their tasks + voice notes will come in it
+    choice = body.strip()
+    if not choice.isdigit() or not 1 <= int(choice) <= len(voice.LANGUAGES):
+        return send(planner["id"], phone, f"Please reply a number from 1 to {len(voice.LANGUAGES)}.")
+    code, lang_name = voice.LANGUAGES[int(choice) - 1]
+    db.update_member(member["id"], language=code)
     db.clear_state(phone)
     member = db.get_member(member["id"])
-    send(planner["id"], phone, "✅ All set!\n\n" + help_text_member(member))
+    send(planner["id"], phone, f"✅ All set! I'll send your tasks in {lang_name}, with a voice note.\n\n"
+         + help_text_member(member))
     send(planner["id"], planner["phone"],
-         f"🆕 *{member['name']}* joined your workspace as {member['role']} ({specialty}).")
+         f"🆕 *{member['name']}* joined your workspace as {member['role']} ({member['specialty']}, prefers {lang_name}).")
 
 
 # ---------- planner ----------
 
-def planner_flow(member, planner, body, audio, image, state):
+def planner_flow(member, planner, body, audio, image, state, voice_info=None):
     phone = member["phone"]
+    is_voice = bool(audio or voice_info)
     upper = body.upper()
 
     # Waiting for "which wedding?" answer
@@ -173,7 +194,7 @@ def planner_flow(member, planner, body, audio, image, state):
         return send(planner["id"], phone, "⚠️ AI is not set up yet (missing GEMINI_API_KEY).")
 
     result = ai.understand_planner(body, audio, db.members_of(planner["id"]), db.weddings_of(planner["id"]), db.now())
-    transcript = (result.get("transcript") or body).strip()
+    transcript = voice_info["transcript"] if voice_info else (result.get("transcript") or body).strip()
     intent = result.get("intent")
     valid_ids = {m["id"] for m in db.members_of(planner["id"]) if m["role"] != "planner"}
 
@@ -186,11 +207,12 @@ def planner_flow(member, planner, body, audio, image, state):
                 "assignee_name": t.get("assignee_name") or "?",
                 "task": (t.get("task") or "").strip(),
                 "task_original": (t.get("task_original") or t.get("task") or "").strip(),
+                "task_local": (t.get("task_local") or "").strip(),
                 "due": t.get("due") if db.parse_time(t.get("due")) else None,
                 "needs_proof": bool(t.get("needs_proof")),
             })
         db.set_state(phone, "pick_wedding", {"tasks": tasks, "transcript": transcript,
-                                             "source": "voice" if audio else "text"})
+                                             "source": "voice" if is_voice else "text"})
         lines = []
         for i, t in enumerate(tasks, 1):
             who = db.get_member(t["assignee_id"])["name"] if t["assignee_id"] else f"❓{t['assignee_name']} (not in team)"
@@ -199,18 +221,23 @@ def planner_flow(member, planner, body, audio, image, state):
         weddings = db.weddings_of(planner["id"])
         options = "\n".join(f"{NUMBER_EMOJI[i] if i < 10 else i} {w['name']} ({w['date']})"
                             for i, w in enumerate(weddings, 1))
-        heard = f"🎤 I heard: _{transcript}_\n\n" if audio else ""
+        heard = f"🎤 I heard: _{transcript}_\n\n" if is_voice else ""
         return send(planner["id"], phone,
                     f"{heard}📝 *{len(tasks)} task(s):*\n" + "\n".join(lines) +
                     f"\n\n💍 *Which wedding is this for?*\n{options}\n\nReply with the number (0 to cancel).")
 
     if intent == "question":
-        question = transcript if audio else body
+        question = transcript if is_voice else body
         answer = ai.answer_question(question, snapshot(planner), db.now())
-        heard = f"🎤 _{transcript}_\n\n" if audio else ""
-        return send(planner["id"], phone, heard + answer)
+        heard = f"🎤 _{transcript}_\n\n" if is_voice else ""
+        send(planner["id"], phone, heard + answer)
+        if voice_info:  # asked by voice -> also answer by voice, in the same language
+            spoken = voice.speak(answer.replace("*", "").replace("_", ""), voice_info["lang"])
+            if spoken:
+                messaging.send_voice(planner["id"], phone, spoken)
+        return
 
-    heard = f"🎤 I heard: _{transcript}_\n\n" if audio else ""
+    heard = f"🎤 I heard: _{transcript}_\n\n" if is_voice else ""
     send(planner["id"], phone, heard + "I didn't find a task or question in that. Try:\n"
          "_\"Ayush, confirm the buses by tomorrow 5 PM\"_ or _\"What's pending for Sharma wedding?\"_")
 
@@ -227,7 +254,7 @@ def assign_to_wedding(planner, phone, choice, data):
     lines, unassigned = [], 0
     for t in data["tasks"]:
         task = db.create_task(planner["id"], wedding["id"], t["assignee_id"], t["task"], t["task_original"],
-                              t["due"], t["needs_proof"], data.get("source", "text"))
+                              t["due"], t["needs_proof"], data.get("source", "text"), task_local=t.get("task_local"))
         if task["assignee_id"]:
             notify_assignee(planner, task)
             lines.append(f"#{task['id']} → {task['assignee_name']}")
@@ -241,21 +268,28 @@ def assign_to_wedding(planner, phone, choice, data):
 
 
 def notify_assignee(planner, task):
-    original = ""
-    if task["task_original"] and task["task_original"].strip().lower() != task["task"].strip().lower():
-        original = f"\n🗣 _{task['task_original']}_"
+    """Text message with the task (English + their language), then a voice note in their chosen language."""
+    local = (task.get("task_local") or "").strip()
+    lang = task.get("assignee_language") or "en-IN"
+    local_line = f"\n🗣 _{local}_" if local and local.lower() != task["task"].strip().lower() else ""
     proof = "\n📷 *Photo proof needed* — send the photo with your DONE reply." if task["needs_proof"] else ""
     send(planner["id"], task["assignee_phone"],
          f"🔔 *New task from {planner['name']}* ({planner['business']})\n"
          f"💍 {task['wedding_name']} wedding\n\n"
-         f"*#{task['id']}: {task['task']}*{original}\n"
+         f"*#{task['id']}: {task['task']}*{local_line}\n"
          f"⏰ Due: {fmt_due(task['due_at'])}{proof}\n\n"
-         f"Reply *DONE {task['id']}* when finished.")
+         f"Reply *DONE {task['id']}* when finished (or just send a voice note).")
+    # They talk, not type: give them the task as a voice note too (only if we have it in their language)
+    spoken_text = local if local else (task["task"] if lang == "en-IN" else "")
+    if spoken_text:
+        spoken = voice.speak(f"{planner['name']}: {spoken_text}", lang)
+        if spoken:
+            messaging.send_voice(planner["id"], task["assignee_phone"], spoken)
 
 
 # ---------- team members and vendors ----------
 
-def member_flow(member, planner, body, audio, image, state):
+def member_flow(member, planner, body, audio, image, state, voice_info=None):
     phone = member["phone"]
     upper = body.upper()
     open_tasks = db.open_tasks_of_member(member["id"])
@@ -268,7 +302,7 @@ def member_flow(member, planner, body, audio, image, state):
         if upper == "CANCEL":
             db.clear_state(phone)
             return send(planner["id"], phone, "OK, cancelled.")
-        if not audio and not re.match(r"^" + DONE_WORDS, body, re.I):
+        if not audio and not voice_info and not re.match(r"^" + DONE_WORDS, body, re.I):
             return send(planner["id"], phone, f"📷 Please send the photo for task #{state['data']['task_id']} "
                                               "(or CANCEL).")
 
@@ -291,7 +325,7 @@ def member_flow(member, planner, body, audio, image, state):
         if done_id and any(t["id"] == int(done_id) for t in open_tasks):
             return done_flow(member, planner, open_tasks, str(done_id), None)
         # Not a "done" message: pass it to the planner so nothing is lost
-        transcript = result.get("transcript") or body
+        transcript = voice_info["transcript"] if voice_info else (result.get("transcript") or body)
         english = result.get("english") or transcript
         original = f"\n🗣 _{transcript}_" if transcript.strip().lower() != english.strip().lower() else ""
         send(planner["id"], planner["phone"],

@@ -13,12 +13,14 @@ from dotenv import load_dotenv
 load_dotenv()  # read keys from .env before anything else
 
 import os
+import hmac
 import threading
 from flask import Flask, request, render_template, redirect, url_for, abort, Response, jsonify
 
 import db
 import ai
 import bot
+import voice
 import messaging
 
 app = Flask(__name__)
@@ -109,6 +111,7 @@ def dashboard(token):
                            stats=stats, feed=feed, wedding_id=wedding_id, welcome=request.args.get("welcome"),
                            invite=bot.invite_text(planner), link=bot.dashboard_link(planner),
                            ai_ready=ai.is_configured(), twilio_ready=messaging.is_configured(),
+                           voice_ready=voice.is_configured(), languages=voice.LANGUAGE_NAMES,
                            sandbox_join=os.environ.get("TWILIO_SANDBOX_JOIN", ""),
                            sandbox_number=os.environ.get("TWILIO_WHATSAPP_FROM", "+14155238886"))
 
@@ -178,6 +181,24 @@ def proof(task_id, token):
     if not task or task["planner_id"] != planner["id"] or not task["proof_image"]:
         abort(404)
     return Response(bytes(task["proof_image"]), mimetype=task["proof_mime"] or "image/jpeg")
+
+
+@app.get("/audio/<int:clip_id>/<sig>")
+def audio(clip_id, sig):
+    """Plays a stored voice note. Twilio fetches generated voice notes from here to deliver them on WhatsApp."""
+    if not hmac.compare_digest(sig, messaging.clip_signature(clip_id)):
+        abort(404)
+    clip = db.get_clip(clip_id)
+    if not clip:
+        abort(404)
+    return Response(bytes(clip["data"]), mimetype=(clip["mime"] or "audio/mpeg").split(";")[0])
+
+
+@app.template_filter("clip_url")
+def clip_url_filter(media):
+    """'audio:12' -> a relative link the browser can play."""
+    clip_id = int(media.split(":")[1])
+    return f"/audio/{clip_id}/{messaging.clip_signature(clip_id)}"
 
 
 # ---------- WhatsApp simulator (same bot logic, messages shown on screen) ----------
