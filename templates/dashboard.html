@@ -79,6 +79,8 @@
       </td>
       <td class="row-actions">
         {% if t.status == 'pending' %}
+          {% if t.assignee_phone and not t.assignee_phone.startswith('+91000') %}<a role="button" class="outline" style="padding:2px 10px;font-size:12px;margin:0 2px 2px 0" target="_blank"
+             href="https://wa.me/{{ t.assignee_phone|replace('+','') }}?text={{ ('🔔 Task #' ~ t.id ~ ' (' ~ t.wedding_name ~ '): ' ~ t.task ~ (' | ' ~ t.task_local if t.task_local else '') ~ ' | Due: ' ~ t.due_text ~ ' | Reply DONE ' ~ t.id ~ ' when finished.')|urlencode }}">📲 Send on WhatsApp</a>{% endif %}
           {% if t.assignee_name %}<form method="post" action="/w/{{ planner.token }}/task/{{ t.id }}/nudge?wedding={{ wedding_id or '' }}"><button class="outline">⏰ Nudge</button></form>{% endif %}
           <form method="post" action="/w/{{ planner.token }}/task/{{ t.id }}/done?wedding={{ wedding_id or '' }}"><button class="outline secondary">✓ Done</button></form>
         {% else %}
