@@ -21,6 +21,14 @@ services:
         value: gemini-flash-latest
       - key: SARVAM_API_KEY
         sync: false
+      - key: META_ACCESS_TOKEN
+        sync: false
+      - key: META_PHONE_NUMBER_ID
+        sync: false
+      - key: META_DISPLAY_NUMBER
+        sync: false
+      - key: META_VERIFY_TOKEN
+        value: wewed-verify-2026
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN

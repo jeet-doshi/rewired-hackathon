@@ -112,8 +112,8 @@ def dashboard(token):
                            invite=bot.invite_text(planner), link=bot.dashboard_link(planner),
                            ai_ready=ai.is_configured(), twilio_ready=messaging.is_configured(),
                            voice_ready=voice.is_configured(), languages=voice.LANGUAGE_NAMES,
-                           sandbox_join=os.environ.get("TWILIO_SANDBOX_JOIN", ""),
-                           sandbox_number=os.environ.get("TWILIO_WHATSAPP_FROM", "+14155238886"))
+                           sandbox_join="" if messaging.meta_configured() else os.environ.get("TWILIO_SANDBOX_JOIN", ""),
+                           sandbox_number=bot.bot_number(), provider=messaging.provider_name())
 
 
 @app.post("/w/<token>/task/new")
@@ -232,7 +232,7 @@ def simulator(token):
 def _process_twilio(phone, body, media_refs):
     """Runs in the background so Twilio gets an instant 'OK' (Twilio gives up after 15 seconds)."""
     try:
-        media = [{"data": messaging.download_media(url), "mime": mime} for url, mime in media_refs]
+        media = [{"data": messaging.download_twilio_media(url), "mime": mime} for url, mime in media_refs]
         bot.handle_incoming(phone, body, media)
     except Exception as e:
         print("Error handling WhatsApp message:", e)
@@ -249,6 +249,58 @@ def whatsapp_webhook():
     media_refs = [(request.form.get(f"MediaUrl{i}"), request.form.get(f"MediaContentType{i}", "")) for i in range(count)]
     threading.Thread(target=_process_twilio, args=(phone, body, media_refs), daemon=True).start()
     return Response("<Response></Response>", mimetype="text/xml")
+
+
+# ---------- real WhatsApp (Meta WhatsApp Cloud API webhook) ----------
+
+@app.get("/meta")
+def meta_verify():
+    """Meta checks our webhook once: it sends a secret word, we prove we know it by echoing the challenge."""
+    if (request.args.get("hub.mode") == "subscribe"
+            and request.args.get("hub.verify_token") == os.environ.get("META_VERIFY_TOKEN", "wewed-verify-2026")):
+        return request.args.get("hub.challenge", "")
+    abort(403)
+
+
+_seen_meta_ids = set()
+
+
+def _process_meta(msg):
+    """One incoming WhatsApp message from Meta -> our bot (runs in the background)."""
+    phone = "+" + msg.get("from", "")
+    try:
+        kind = msg.get("type")
+        body, media = "", []
+        if kind == "text":
+            body = msg["text"]["body"]
+        elif kind in ("audio", "image", "document", "video"):
+            part = msg[kind]
+            media = [{"data": messaging.download_meta_media(part["id"]), "mime": part.get("mime_type", "")}]
+            body = part.get("caption", "")
+        elif kind == "button":
+            body = msg["button"].get("text", "")
+        else:
+            body = ""
+        bot.handle_incoming(phone, body, media)
+    except Exception as e:
+        print("Error handling Meta WhatsApp message:", e)
+        member = db.member_by_phone(phone)
+        bot.send(member["planner_id"] if member else None, phone,
+                 "😕 Sorry, something went wrong reading that. Please try again or send it as text.")
+
+
+@app.post("/meta")
+def meta_webhook():
+    """Meta sends every incoming WhatsApp message (and delivery receipts, which we ignore) here."""
+    data = request.get_json(silent=True) or {}
+    for entry in data.get("entry", []):
+        for change in entry.get("changes", []):
+            for msg in change.get("value", {}).get("messages", []):
+                if msg.get("id") in _seen_meta_ids:  # Meta sometimes delivers the same message twice
+                    continue
+                _seen_meta_ids.add(msg.get("id"))
+                threading.Thread(target=_process_meta, args=(msg,), daemon=True).start()
+    return "ok"  # answer Meta fast; real work happens in the background
 
 
 @app.get("/health")

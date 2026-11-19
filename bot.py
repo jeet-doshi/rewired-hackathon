@@ -45,9 +45,20 @@ def dashboard_link(planner):
     return f"{messaging.public_url()}/w/{planner['token']}"
 
 
+def bot_number():
+    """The WhatsApp number people message (Meta test number, or Twilio's)."""
+    if messaging.meta_configured():
+        return os.environ.get("META_DISPLAY_NUMBER", "")
+    return os.environ.get("TWILIO_WHATSAPP_FROM", "+14155238886")
+
+
 def invite_text(planner):
-    sandbox = os.environ.get("TWILIO_SANDBOX_JOIN", "")
-    number = os.environ.get("TWILIO_WHATSAPP_FROM", "+14155238886")
+    sandbox = "" if messaging.meta_configured() else os.environ.get("TWILIO_SANDBOX_JOIN", "")
+    number = bot_number()
+    if not sandbox:
+        return (f"You're invited to *{planner['business']}* on WeWED, our wedding task assistant.\n"
+                f"Send this on WhatsApp to {number}: *JOIN {planner['join_code']} Your Name*\n"
+                f"https://wa.me/{number.lstrip('+').replace(' ', '')}?text=JOIN%20{planner['join_code']}%20")
     step1 = f"1) Send *{sandbox}* to {number} on WhatsApp (one-time).\n" if sandbox else ""
     return (f"You're invited to *{planner['business']}* on WeWED, our wedding task assistant.\n"
             f"{step1}{'2' if sandbox else '1'}) Then send: *JOIN {planner['join_code']} Your Name*")

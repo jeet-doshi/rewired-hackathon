@@ -10,12 +10,13 @@
 {% if not ai_ready or not twilio_ready or not voice_ready %}
 <p class="banner">Setup: {% if not ai_ready %}AI (Gemini key) is not connected. {% endif %}
 {% if not voice_ready %}Voice (Sarvam key) is not connected. {% endif %}
-{% if not twilio_ready %}Real WhatsApp (Twilio) is not connected — messages appear only in the simulator.{% endif %}</p>
+{% if not twilio_ready %}Real WhatsApp is not connected — messages appear only in the simulator.{% endif %}</p>
 {% endif %}
 
 <hgroup>
   <h2>{{ planner.business }}</h2>
-  <p>Planner: {{ planner.name }} · {{ planner.phone }} · Join code <b>{{ planner.join_code }}</b></p>
+  <p>Planner: {{ planner.name }} · {{ planner.phone }} · Join code <b>{{ planner.join_code }}</b>
+    · Bot WhatsApp: <b>{{ sandbox_number or '—' }}</b> <span class="muted">({{ provider }})</span></p>
 </hgroup>
 
 <details {% if welcome %}open{% endif %}>
