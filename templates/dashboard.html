@@ -140,7 +140,7 @@
 
   <h4>💬 Live WhatsApp activity <span class="pill done">● live</span></h4>
   <div class="feed">
-    {% for msg in feed %}
+    {% for msg in feed if not (msg.body or '').startswith('⚠️ WhatsApp could not deliver') %}
     <div><span class="muted">{{ msg.at[11:] }} {{ '→' if msg.direction == 'out' else '←' }} {{ msg.who }}</span>
       {% if msg.media and msg.media.startswith('audio:') %}🎤 <audio controls preload="none" src="{{ msg.media|clip_url }}" style="height:28px;vertical-align:middle"></audio> {% elif msg.media == 'image' %}📷 photo {% endif %}{{ msg.body[:220] }}</div>
     {% else %}<div class="muted">No messages yet.</div>{% endfor %}

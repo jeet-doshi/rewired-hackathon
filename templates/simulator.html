@@ -31,7 +31,7 @@
 {% if error %}<p class="banner">Error: {{ error }}</p>{% endif %}
 
 <div class="chat" id="chat">
-  {% for m in messages %}
+  {% for m in messages if not (m.body or '').startswith('⚠️ WhatsApp could not deliver') %}
   <div class="msg {{ 'in' if m.direction == 'in' else 'out' }}">{% if m.media and m.media.startswith('audio:') %}<audio controls preload="none" src="{{ m.media|clip_url }}" style="height:34px;max-width:100%"></audio>{% if m.body %}<br>🎤 <i>{{ m.body }}</i>{% endif %}{% elif m.media == 'image' %}📷 <i>photo</i> {{ m.body }}{% else %}{{ m.body }}{% endif %}<small>{{ m.at[11:] }}</small></div>
   {% else %}<p class="muted">No messages yet. Say hi!</p>{% endfor %}
 </div>
