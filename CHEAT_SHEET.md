@@ -7,8 +7,8 @@ WeWED: the planner sends **one voice note in any language** -> AI makes tasks ->
 ## Live links
 - App: https://wewed-assistant.onrender.com  · Demo dashboard: https://wewed-assistant.onrender.com/w/demo
 - Simulator (backup demo): https://wewed-assistant.onrender.com/w/demo/sim
-- WhatsApp bot: **+1 555 169 1720** (Meta WhatsApp Cloud API test number; save it as "WeWED Bot"). Only phones registered as testers in Meta (max 5) can use it.
-- Backup inbound: +1 737 250 8034 (Twilio trial) also reaches the same app; replies still come from the Meta number.
+- WhatsApp: Jeet sends voice notes/text to **+1 737 250 8034** (Twilio trial) -> they appear live on the dashboard as tasks. Bot replies + team members' view: **simulator**.
+- Why not full WhatsApp replies? Twilio's free trial = template replies only; Meta banned our brand-new test account during the event. Code for both is done; a verified WhatsApp Business number turns it fully on.
 
 ## What each file does
 | File | Plain English |

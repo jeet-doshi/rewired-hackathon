@@ -46,14 +46,14 @@ def dashboard_link(planner):
 
 
 def bot_number():
-    """The WhatsApp number people message (Meta test number, or Twilio's)."""
-    if messaging.meta_configured():
-        return os.environ.get("META_DISPLAY_NUMBER", "")
-    return os.environ.get("TWILIO_WHATSAPP_FROM", "+14155238886")
+    """The WhatsApp number people message. Twilio receives today (Meta banned our brand-new test account)."""
+    if messaging.twilio_configured():
+        return os.environ.get("TWILIO_WHATSAPP_FROM", "+14155238886")
+    return os.environ.get("META_DISPLAY_NUMBER", "")
 
 
 def invite_text(planner):
-    sandbox = "" if messaging.meta_configured() else os.environ.get("TWILIO_SANDBOX_JOIN", "")
+    sandbox = os.environ.get("TWILIO_SANDBOX_JOIN", "") if messaging.twilio_configured() else ""
     number = bot_number()
     if not sandbox:
         return (f"You're invited to *{planner['business']}* on WeWED, our wedding task assistant.\n"

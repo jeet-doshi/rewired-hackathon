@@ -56,7 +56,9 @@ def is_configured():
 
 
 def provider_name():
-    return "Meta WhatsApp Cloud API" if meta_configured() else ("Twilio" if twilio_configured() else "simulator only")
+    if twilio_configured():
+        return "real WhatsApp in via Twilio; replies shown in simulator"
+    return "Meta WhatsApp Cloud API" if meta_configured() else "simulator only"
 
 
 def public_url():

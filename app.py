@@ -112,7 +112,7 @@ def dashboard(token):
                            invite=bot.invite_text(planner), link=bot.dashboard_link(planner),
                            ai_ready=ai.is_configured(), twilio_ready=messaging.is_configured(),
                            voice_ready=voice.is_configured(), languages=voice.LANGUAGE_NAMES,
-                           sandbox_join="" if messaging.meta_configured() else os.environ.get("TWILIO_SANDBOX_JOIN", ""),
+                           sandbox_join=os.environ.get("TWILIO_SANDBOX_JOIN", "") if messaging.twilio_configured() else "",
                            sandbox_number=bot.bot_number(), provider=messaging.provider_name())
 
 
