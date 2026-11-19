@@ -119,6 +119,13 @@ def handle_incoming(phone, body, media):
 
     if re.match(r"^join\b", body, re.I):
         return handle_join(phone, body)
+    if body.strip().upper() == "DELETE MY DATA":  # privacy: anyone can remove themselves
+        if member and member["role"] != "planner":
+            db.query("UPDATE tasks SET assignee_id = NULL WHERE assignee_id = ?", (member["id"],))
+            db.query("DELETE FROM members WHERE phone = ? AND role != 'planner'", (phone,))
+        db.query("DELETE FROM messages WHERE phone = ?", (phone,))
+        db.clear_state(phone)
+        return messaging.send(None, phone, "🗑️ Done. Your profile and messages were deleted from WeWED.")
     if not member or not planner:
         return send(None, phone, "👋 Welcome to WeWED! To join your planner's workspace, send:\n"
                                  "*JOIN <code> <your name>*  e.g. JOIN SHUBH-DEC Ayush")
