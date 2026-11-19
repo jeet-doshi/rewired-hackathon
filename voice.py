@@ -23,7 +23,8 @@ LANGUAGE_NAMES = dict(LANGUAGES)
 
 
 def _key():
-    return os.environ.get("SARVAM_API_KEY", "")
+    key = os.environ.get("SARVAM_API_KEY", "").strip()
+    return "" if key.lower() in ("none", "-", "na") else key  # placeholder means "not set yet"
 
 
 def is_configured():
